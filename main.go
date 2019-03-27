@@ -5,6 +5,8 @@ import (
 	//"github.com/gocolly/colly/debug"
 	"fmt"
 	"net/http"
+	"sync"
+	"comp4321/concurrentMap"
 )
 var idCount int = 2
 var pageMap map[string]int
@@ -21,9 +23,13 @@ type page struct {
 var requestID string
 
 func main() {
+	var wg = &sync.WaitGroup{}
 
-	pageMap = make(map[string]int)
-	pageMap["http://apartemen.win/comp4321/page1.html"] = 1
+	// pageMap = make(map[string]int)
+	pageMap := concurrentMap.ConcurrentMap{}
+	pageMap.Init()
+	// pageMap["https://www.cse.ust.hk"] = 1
+	pageMap.Set("https://www.cse.ust.hk", 1)
 
 	pages := []page{}
 	
@@ -54,7 +60,7 @@ func main() {
 		temp.title = e.ChildText("title")
 		temp.url = e.Request.URL.String()
 
-		temp.id = pageMap[temp.url]
+		temp.id = pageMap.Get(temp.url).(int)
 		// temp.content = e.ChildText("body")
 
 		temp.children = []int{}
@@ -62,20 +68,25 @@ func main() {
 
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
-			resp, err := http.Get(url)
-			if err != nil || resp.StatusCode !=200 {
-				continue
-			}
-			defer resp.Body.Close()
+			wg.Add(1)
+			go func (url string) {
+				defer wg.Done()
+				resp, err := http.Get(url)
+				if err != nil || resp.StatusCode != 200 {
+					return
+				}
+				defer resp.Body.Close()
 
-			pageMap[url] = idCount
-			idCount++
+				pageMap.Set(url, idCount)
 
-			temp.children = append(temp.children, pageMap[url])
+				idCount++
 
-			e.Request.Visit(url)
+				temp.children = append(temp.children, pageMap.Get(url).(int))
+
+				e.Request.Visit(url)
+			}(url)
 		}
-
+		wg.Wait()
 		pages = append(pages, temp)
 
 	})
@@ -99,10 +110,10 @@ func main() {
 	// 	fmt.Println("Parent Result", el.Text)
 	// })
 
-	crawler.Visit("http://apartemen.win/comp4321/page1.html")
+	crawler.Visit("https://www.cse.ust.hk")
 
 	crawler.Wait()
-	fmt.Println("Pages: \n")
+	fmt.Println("Pages: ")
 	for _, page := range pages {
 		fmt.Println("ID:", page.id)
 		fmt.Println("Title:", page.title)
@@ -111,14 +122,15 @@ func main() {
 		for _, child := range page.children {
 			fmt.Print(child, " ")
 		}
-		fmt.Println("\n")
+		fmt.Print("\n")
 	}
 
-	fmt.Println("\nURL to ID maps:\n")
+	fmt.Println("\nURL to ID maps:")
 
-	for url, id := range pageMap {
-		fmt.Println("ID:", id)
-		fmt.Println("URL:", url, "\n")
+	pageMapChan := pageMap.Iter()
+	for items := range pageMapChan {
+		fmt.Println("ID:", items.Key)
+		fmt.Println("URL:", items.Value.(int))
 
 	}
 }	
