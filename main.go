@@ -11,15 +11,6 @@ import (
 var idCount int = 2
 var pageMap map[string]int
 
-type page struct {
-	id int
-	title string
-	url string
-	// size int
-	content string
-	children []int
-}
-
 var requestID string
 
 func main() {
@@ -61,7 +52,7 @@ func main() {
 		temp.url = e.Request.URL.String()
 
 		temp.id = pageMap.Get(temp.url).(int)
-		// temp.content = e.ChildText("body")
+		temp.content = e.ChildText("body")
 
 		temp.children = []int{}
 		links := e.ChildAttrs("a[href]", "href")
@@ -131,6 +122,5 @@ func main() {
 	for items := range pageMapChan {
 		fmt.Println("ID:", items.Key)
 		fmt.Println("URL:", items.Value.(int))
-
 	}
 }	
