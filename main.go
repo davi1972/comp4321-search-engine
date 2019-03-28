@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"os"
 	"comp4321/concurrentMap"
 	"comp4321/tokenizer"
+	"comp4321/indexer"
 )
 var idCount int = 2
 var pageMap map[string]int
@@ -25,6 +27,7 @@ var requestID string
 
 func main() {
 	var wg = &sync.WaitGroup{}
+	wd, _ := os.Getwd()
 
 	rootPage := "https://www.cse.ust.hk"
 	// rootPage := "https://apartemen.win/comp4321/page1.html"
@@ -35,10 +38,26 @@ func main() {
 	pageMap.Init()
 	pageMap.Set(rootPage, 1)
 
+	documentIndexer := &Indexer.MappingIndexer{}
+	err := documentIndexer.Initialize(wd + "/db/documentIndex")
+	if err != nil {
+		fmt.Println("error when initializing: %s", err)
+	}
+	defer documentIndexer.Backup()
+	defer documentIndexer.Release()
+
+	pagePropertiesIndexer := &Indexer.PagePropetiesIndexer{}
+	err = pagePropertiesIndexer.Initialize(wd + "/db/pagePropertiesIndex")
+	if err != nil {
+		fmt.Println("error when initializing: %s", err)
+	}
+	defer pagePropertiesIndexer.Backup()
+	defer pagePropertiesIndexer.Release()
+
 	pages := []page{}
 	
 	crawler := colly.NewCollector(		
-		colly.MaxDepth(2),
+		colly.MaxDepth(1),
 		// colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 	)
@@ -69,6 +88,10 @@ func main() {
 
 		temp.children = []int{}
 		links := e.ChildAttrs("a[href]", "href")
+
+		documentIndexer.AddKeyToIndex(temp.url)
+		id, _ := documentIndexer.GetValueFromKey(temp.url)
+		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.Page{id, temp.title, temp.url})
 
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
@@ -122,4 +145,5 @@ func main() {
 		fmt.Println("ID:", items.Key)
 		fmt.Println("URL:", items.Value.(int))
 	}
+
 }	

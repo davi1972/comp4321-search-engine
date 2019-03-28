@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"os"
 )
 
 type InvertedFileIndexer struct {
 	db *badger.DB
+	databasePath string
 }
 
 type InvertedFile struct {
@@ -41,6 +43,17 @@ func stringToInvertedFile(str string) InvertedFile {
 		pageSliceUint64[i], _ = strconv.ParseUint(value, 10, 64)
 	}
 	return InvertedFile{pageSliceUint64[0], pageSliceUint64[1:]}
+}
+
+func (InvertedFileIndexer *InvertedFileIndexer) Backup() error {
+	fmt.Println("Doing Database Backup")
+	f, err := os.Create(InvertedFileIndexer.databasePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	InvertedFileIndexer.db.Backup(f, 0)
+	return err
 }
 
 func invertedFileToString(i InvertedFile) string {
