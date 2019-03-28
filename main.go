@@ -7,20 +7,33 @@ import (
 	"net/http"
 	"sync"
 	"comp4321/concurrentMap"
+	"comp4321/tokenizer"
 )
 var idCount int = 2
 var pageMap map[string]int
+
+type page struct {
+	id int
+	title string
+	url string
+	// size int
+	content []string
+	children []int
+}
 
 var requestID string
 
 func main() {
 	var wg = &sync.WaitGroup{}
 
-	// pageMap = make(map[string]int)
+	rootPage := "https://www.cse.ust.hk"
+	// rootPage := "https://apartemen.win/comp4321/page1.html"
+
+	tokenizer.LoadStopWords()
+
 	pageMap := concurrentMap.ConcurrentMap{}
 	pageMap.Init()
-	// pageMap["https://www.cse.ust.hk"] = 1
-	pageMap.Set("https://www.cse.ust.hk", 1)
+	pageMap.Set(rootPage, 1)
 
 	pages := []page{}
 	
@@ -52,7 +65,7 @@ func main() {
 		temp.url = e.Request.URL.String()
 
 		temp.id = pageMap.Get(temp.url).(int)
-		temp.content = e.ChildText("body")
+		temp.content = tokenizer.Tokenize(e.ChildText("body"))
 
 		temp.children = []int{}
 		links := e.ChildAttrs("a[href]", "href")
@@ -81,33 +94,19 @@ func main() {
 		pages = append(pages, temp)
 
 	})
-	// On every a element which has href attribute call callback
-	// crawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
-	// 	link := e.Attr("href")
-	// 	// Print link
-	// 	fmt.Printf("Link found: %q -> %s\n", e.Text, link)
-		
-	// 	// Visit link found on page
-	// 	// Only those links are visited which are in AllowedDomains
-	// 	e.Request.Visit(link)
-
-	// })
 
 	crawler.OnRequest(func(r *colly.Request){
 		fmt.Println("Visiting", r.URL)
 	})
 
-	// crawler.OnHTML("*", func(el *colly.HTMLElement) {
-	// 	fmt.Println("Parent Result", el.Text)
-	// })
-
-	crawler.Visit("https://www.cse.ust.hk")
+	crawler.Visit(rootPage)
 
 	crawler.Wait()
 	fmt.Println("Pages: ")
 	for _, page := range pages {
 		fmt.Println("ID:", page.id)
 		fmt.Println("Title:", page.title)
+		fmt.Println("content:", page.content)
 		fmt.Println("url:", page.url)
 		fmt.Print("children:")
 		for _, child := range page.children {
