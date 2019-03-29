@@ -8,6 +8,8 @@ import (
 	"sync"
 	"github.com/hskrishandi/comp4321/concurrentMap"
 	"github.com/hskrishandi/comp4321/tokenizer"
+	"time"
+	"strconv"
 )
 var idCount int = 2
 var pageMap map[string]int
@@ -16,9 +18,10 @@ type page struct {
 	id int
 	title string
 	url string
-	// size int
+	size int
 	content []string
 	children []int
+	date_modified time.Time
 }
 
 var requestID string
@@ -58,16 +61,35 @@ func main() {
 
 
 	crawler.OnHTML("html", func(e *colly.HTMLElement) {
-
+		
 		temp := page{}
 		
 		temp.title = e.ChildText("title")
 		temp.url = e.Request.URL.String()
-
+	
 		temp.id = pageMap.Get(temp.url).(int)
 		temp.content = tokenizer.Tokenize(e.ChildText("body"))
 
 		temp.children = []int{}
+
+		size, _ := strconv.Atoi(e.Response.Headers.Get("Content-Length"))
+
+		if(size==0){
+			size = len(e.Text)
+		}
+
+		temp.size = size
+
+		date := e.Response.Headers.Get("Last-Modified")
+		
+
+		if(len(date)!=0){
+			temp.date_modified, _ = time.Parse(time.RFC1123, date)
+		} else {
+			temp.date_modified = time.Now()
+		}
+
+		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
 
 		for _, url := range links {
@@ -105,13 +127,17 @@ func main() {
 	fmt.Println("Pages: ")
 	for _, page := range pages {
 		fmt.Println("ID:", page.id)
-		fmt.Println("Title:", page.title)
-		fmt.Println("content:", page.content)
 		fmt.Println("url:", page.url)
+		fmt.Println("Title:", page.title)
+		fmt.Println("Size:", page.size)
+		fmt.Println("Content:", page.content)
+		
 		fmt.Print("children:")
 		for _, child := range page.children {
 			fmt.Print(child, " ")
 		}
+		fmt.Print("\n")
+		fmt.Println("date_modified:", page.date_modified.Format(time.RFC1123))
 		fmt.Print("\n")
 	}
 
