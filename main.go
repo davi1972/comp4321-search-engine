@@ -91,8 +91,8 @@ func main() {
 
 		documentIndexer.AddKeyToIndex(temp.url)
 		id, _ := documentIndexer.GetValueFromKey(temp.url)
-		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.Page{id, temp.title, temp.url})
-
+		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url))
+		fmt.Println(pagePropertiesIndexer.GetPagePropertiesFromKey(id))
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
 			wg.Add(1)

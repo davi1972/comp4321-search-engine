@@ -19,12 +19,20 @@ type Page struct {
 	url string
 }
 
+func CreatePage(id uint64, title string, url string) Page {
+	page := Page{}
+	page.id = id
+	page.title = title
+	page.url = url
+	return page
+}
+
 func pageToString(page *Page) string {
-	return string(uint64ToByte(page.id)) + " " + page.title + " " + page.url
+	return string(uint64ToByte(page.id)) + "/page/" + page.title + "/page/" + page.url
 }
 
 func stringToPage(str string) Page {
-	splitString := strings.Split(str, " ")
+	splitString := strings.Split(str, "/page/")
 	idString, _ := strconv.ParseUint(splitString[0], 10, 64)
 	return Page{idString, splitString[1], splitString[2]}
 }
@@ -92,6 +100,7 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageI
 			return err
 		} 
 		itemErr := item.Value(func(val []byte) error {
+			fmt.Println("Get value: %s", string(val))
 			resultPage = stringToPage(string(val))
 			return nil
 		})
