@@ -10,6 +10,8 @@ import (
 	"comp4321/concurrentMap"
 	"comp4321/tokenizer"
 	"comp4321/indexer"
+	"time"
+	"strconv"
 )
 var idCount int = 2
 var pageMap map[string]int
@@ -18,9 +20,10 @@ type page struct {
 	id int
 	title string
 	url string
-	// size int
+	size int
 	content []string
 	children []int
+	date_modified time.Time
 }
 
 var requestID string
@@ -39,20 +42,36 @@ func main() {
 	pageMap.Set(rootPage, 1)
 
 	documentIndexer := &Indexer.MappingIndexer{}
-	err := documentIndexer.Initialize(wd + "/db/documentIndex")
-	if err != nil {
-		fmt.Println("error when initializing: %s", err)
+	docErr := documentIndexer.Initialize(wd + "/db/documentIndex")
+	if docErr != nil {
+		fmt.Printf("error when initializing document indexer: %s\n", docErr)
 	}
 	defer documentIndexer.Backup()
 	defer documentIndexer.Release()
 
+	wordIndexer := &Indexer.MappingIndexer{}
+	wordErr := wordIndexer.Initialize(wd + "/db/wordIndex")
+	if wordErr != nil {
+		fmt.Printf("error when initializing word indexer: %s\n", wordErr)
+	}
+	defer wordIndexer.Backup()
+	defer wordIndexer.Release()
+
 	pagePropertiesIndexer := &Indexer.PagePropetiesIndexer{}
-	err = pagePropertiesIndexer.Initialize(wd + "/db/pagePropertiesIndex")
-	if err != nil {
-		fmt.Println("error when initializing: %s", err)
+	pagePropertiesErr := pagePropertiesIndexer.Initialize(wd + "/db/pagePropertiesIndex")
+	if pagePropertiesErr != nil {
+		fmt.Printf("error when initializing page properties: %s\n", pagePropertiesErr)
 	}
 	defer pagePropertiesIndexer.Backup()
 	defer pagePropertiesIndexer.Release()
+
+	contentInvertedIndexer := &Indexer.InvertedFileIndexer{}
+	contentInvertedErr := contentInvertedIndexer.Initialize(wd + "/db/contentInvertedIndex")
+	if contentInvertedErr != nil {
+		fmt.Printf("error when initializing page properties: %s\n", contentInvertedErr)
+	}
+	defer contentInvertedIndexer.Backup()
+	defer contentInvertedIndexer.Release()
 
 	pages := []page{}
 	
@@ -77,22 +96,66 @@ func main() {
 
 
 	crawler.OnHTML("html", func(e *colly.HTMLElement) {
-
+		
 		temp := page{}
 		
 		temp.title = e.ChildText("title")
 		temp.url = e.Request.URL.String()
-
-		temp.id = pageMap.Get(temp.url).(int)
-		temp.content = tokenizer.Tokenize(e.ChildText("body"))
-
-		temp.children = []int{}
-		links := e.ChildAttrs("a[href]", "href")
-
+		
+		// Store Document id and properties
 		documentIndexer.AddKeyToIndex(temp.url)
 		id, _ := documentIndexer.GetValueFromKey(temp.url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url))
-		fmt.Println(pagePropertiesIndexer.GetPagePropertiesFromKey(id))
+		
+		temp.id = pageMap.Get(temp.url).(int)
+		temp.content = tokenizer.Tokenize(e.ChildText("body"))
+
+		// Check for duplicate words in the document
+		wordList := make(map[uint64]*Indexer.InvertedFile)
+		for i, v := range temp.content {
+			// Add Word to id index
+			wordId, err := wordIndexer.GetValueFromKey(v)
+			if err != nil {
+				wordId, _ = wordIndexer.AddKeyToIndex(v)
+			}
+
+			invFile, contain := wordList[wordId]
+			if contain {
+				invFile.AddWordPositions(uint64(i))
+			} else {
+				wordList[wordId] = Indexer.CreateInvertedFile(wordId)
+				wordList[wordId].AddWordPositions(uint64(i))
+			}
+		}
+
+		for k, v := range wordList {
+			contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
+		}
+
+		contentInvertedIndexer.Iterate()
+
+		temp.children = []int{}
+
+		size, _ := strconv.Atoi(e.Response.Headers.Get("Content-Length"))
+
+		if(size==0){
+			size = len(e.Text)
+		}
+
+		temp.size = size
+
+		date := e.Response.Headers.Get("Last-Modified")
+		
+
+		if(len(date)!=0){
+			temp.date_modified, _ = time.Parse(time.RFC1123, date)
+		} else {
+			temp.date_modified = time.Now()
+		}
+
+		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
+		links := e.ChildAttrs("a[href]", "href")
+
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
 			wg.Add(1)
@@ -128,13 +191,17 @@ func main() {
 	fmt.Println("Pages: ")
 	for _, page := range pages {
 		fmt.Println("ID:", page.id)
-		fmt.Println("Title:", page.title)
-		fmt.Println("content:", page.content)
 		fmt.Println("url:", page.url)
+		fmt.Println("Title:", page.title)
+		fmt.Println("Size:", page.size)
+		fmt.Println("Content:", page.content)
+		
 		fmt.Print("children:")
 		for _, child := range page.children {
 			fmt.Print(child, " ")
 		}
+		fmt.Print("\n")
+		fmt.Println("date_modified:", page.date_modified.Format(time.RFC1123))
 		fmt.Print("\n")
 	}
 

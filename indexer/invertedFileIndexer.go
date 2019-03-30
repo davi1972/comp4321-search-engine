@@ -18,22 +18,57 @@ type InvertedFile struct {
 	wordPositions []uint64
 }
 
-func (invertedFileIndexer *InvertedFileIndexer) Initialize() error {
+func CreateInvertedFile(pageID uint64) *InvertedFile {
+	return &InvertedFile{pageID, []uint64{}}
+}
+
+func (invertedFile *InvertedFile) AddWordPositions(pos uint64) {
+	invertedFile.wordPositions = append(invertedFile.wordPositions, pos)
+}
+
+func (invertedFileIndexer *InvertedFileIndexer) Initialize(path string) error {
+	if err := os.MkdirAll(path, 0774); err != nil {
+		return err
+	}
 	opts := badger.DefaultOptions
-	opts.Dir = "../tmp/badger"
-	opts.ValueDir = "../tmp/badger"
+	opts.Dir = path
+	opts.ValueDir = path
 	db, err := badger.Open(opts)
 	if err != nil {
 		return fmt.Errorf("Error while initializing: %s", err)
 	}
 	
 	invertedFileIndexer.db = db
-	
+	invertedFileIndexer.databasePath = path
 	return nil
 }
 
 func (invertedFileIndexer *InvertedFileIndexer) Release() error {
 	return invertedFileIndexer.db.Close()
+}
+
+
+func (invertedFileIndexer *InvertedFileIndexer) Iterate() error {
+	fmt.Println("iterating over InvertedFile")
+	err := invertedFileIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+		  item := it.Item()
+		  k := item.Key()
+		  err := item.Value(func(v []byte) error {
+			fmt.Printf("key=%d, value=%s\n", byteToUint64(k), v)
+			return nil
+		  })
+		  if err != nil {
+			return err
+		  }
+		}
+		return nil
+	  })
+	return err
 }
 
 func stringToInvertedFile(str string) InvertedFile {
@@ -70,10 +105,8 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 
 	// Construct a string to to add to inverted file
 	valueString := invertedFileToString(invertedFile)
-
 	err := invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get(keyString)
-
 		// If key already exists, have to append/insert
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
@@ -105,10 +138,9 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 			}
 
 			// Delete the old one
-			txn.Delete([]byte(keyString))
+			txn.Delete(keyString)
 		} 
-		
-		txn.Set(keyString, []byte(valueString))
+		err = txn.Set(keyString, []byte(valueString))
 		return err
 	})
 	if err != nil {
@@ -121,7 +153,7 @@ func (invertedFileIndexer *InvertedFileIndexer) GetInvertedFileFromKey(wordID ui
 	keyString := uint64ToByte(wordID)
 	result := InvertedFile{}
 	err := invertedFileIndexer.db.View(func(txn *badger.Txn) error {
-		item, getErr := txn.Get([]byte(keyString))
+		item, getErr := txn.Get(keyString)
 		if getErr == nil {
 			_ = item.Value(func(val []byte) error {
 				resultString := string(val)

@@ -47,17 +47,19 @@ func (mappingIndexer *MappingIndexer) Backup() error {
 	return err
 }
 
-func (mappingIndexer *MappingIndexer) AddKeyToIndex(key string) error {
-	err := mappingIndexer.db.Update(func(txn *badger.Txn) error {
+func (mappingIndexer *MappingIndexer) AddKeyToIndex(key string) (uint64, error) {
+	var id uint64
+	var err error
+	err = mappingIndexer.db.Update(func(txn *badger.Txn) error {
 		// Get new value for index
-		id, err := mappingIndexer.sequence.Next()
+		id, err = mappingIndexer.sequence.Next()
 		err = txn.Set([]byte(key), []byte(uint64ToByte(id)))
 		return err
 	})
 	if err != nil {
 		err = fmt.Errorf("Error in adding Key to Index: %s", err)
 	}
-	return err
+	return id, err
 }
 
 func (mappingIndexer *MappingIndexer) GetValueFromKey(key string) (uint64, error) {
@@ -80,6 +82,27 @@ func (mappingIndexer *MappingIndexer) GetValueFromKey(key string) (uint64, error
 		err = fmt.Errorf("Error in getting Value from Key: %s", err)
 	}
 	return result, err
+}
+
+func (mappingIndexer *MappingIndexer) Iterate() {
+	_ = mappingIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+		  item := it.Item()
+		  k := item.Key()
+		  err := item.Value(func(v []byte) error {
+			fmt.Printf("key=%s, value=%s\n", k, v)
+			return nil
+		  })
+		  if err != nil {
+			return err
+		  }
+		}
+		return nil
+	  })
 }
 
 func (mappingIndexer *MappingIndexer) DeleteKeyValuePair(key string) error {
