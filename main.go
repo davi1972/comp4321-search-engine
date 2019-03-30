@@ -16,8 +16,8 @@ import (
 
 type page struct {
 	id       uint64
-	children []uint64
-	parent   []uint64
+	children map[uint64]interface{}
+	parent   map[uint64]interface{}
 }
 
 var requestID string
@@ -199,12 +199,12 @@ func main() {
 		for k := range contentWordList {
 			wordUIntList = append(wordUIntList, k)
 		}
-
+		fmt.Println("document -> word")
+		fmt.Println(wordUIntList)
 		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
 
 		temp := page{}
-
-		temp.children = []uint64{}
+		temp.children = make(map[uint64]interface{})
 
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
@@ -220,8 +220,9 @@ func main() {
 				}
 				defer resp.Body.Close()
 				childID, _ := documentIndexer.GetValueFromKey(url)
-				if temp.children != temp.children.Contains(childID) {
-					temp.children = append(temp.children, childID)
+
+				if _, contained := temp.children[childID]; !contained {
+					temp.children[childID] = nil
 				}
 
 				e.Request.Visit(url)
@@ -229,8 +230,12 @@ func main() {
 		}
 		wg.Wait()
 		pages = append(pages, temp)
-		fmt.Println(temp.children)
-		parentChildDocumentForwardIndexer.AddIdListToKey(id, temp.children)
+		childUIntList := make([]uint64, 0, len(temp.children))
+		for k := range temp.children {
+			childUIntList = append(childUIntList, k)
+		}
+		fmt.Println(childUIntList)
+		err = parentChildDocumentForwardIndexer.AddIdListToKey(id, childUIntList)
 	})
 
 	// After finished, iterate of
