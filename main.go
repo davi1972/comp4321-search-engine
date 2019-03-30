@@ -223,6 +223,10 @@ func main() {
 					tempMap.children.Set(childID, nil)
 				}
 
+				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
+
+				pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
+
 				e.Request.Visit(url)
 			}(url)
 		}
@@ -256,4 +260,10 @@ func main() {
 	documentWordForwardIndexer.Iterate()
 	parentChildDocumentForwardIndexer.Iterate()
 	childParentDocumentForwardIndexer.Iterate()
+
+	// i, _ := documentIndexer.GetValueFromKey("https://apartemen.win/comp4321/page1.html")
+	// l, _ := documentWordForwardIndexer.GetIdListFromKey(i)
+
+	// err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(l, i)
+	// fmt.Println(err)
 }
