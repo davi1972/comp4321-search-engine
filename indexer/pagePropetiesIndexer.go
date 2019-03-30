@@ -100,9 +100,9 @@ func (pagePropetiesIndexer *PagePropetiesIndexer) Backup() error {
 	return err
 }
 
-func (PagePropetiesIndexer *PagePropetiesIndexer) AddKeyToPageProperties(pageID uint64, page Page) error {
+func (pagePropetiesIndexer *PagePropetiesIndexer) AddKeyToPageProperties(pageID uint64, page Page) error {
 	pageString := uint64ToByte(pageID)
-	err := PagePropetiesIndexer.db.Update(func(txn *badger.Txn) error {
+	err := pagePropetiesIndexer.db.Update(func(txn *badger.Txn) error {
 		_, err := txn.Get(pageString)
 
 		// If key already exists, have to delete and add new one
@@ -121,10 +121,10 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) AddKeyToPageProperties(pageID 
 	return err
 }
 
-func (PagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageID uint64) (Page, error) {
+func (pagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageID uint64) (Page, error) {
 	pageString := uint64ToByte(pageID)
 	var resultPage Page
-	err := PagePropetiesIndexer.db.View(func(txn *badger.Txn) error {
+	err := pagePropetiesIndexer.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(pageString)
 		if err != nil {
 			return err
@@ -144,9 +144,9 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageI
 	return resultPage, err
 }
 
-func (PagePropetiesIndexer *PagePropetiesIndexer) DeletePagePropertiesFromKey(pageID uint64) error {
+func (pagePropetiesIndexer *PagePropetiesIndexer) DeletePagePropertiesFromKey(pageID uint64) error {
 	pageString := uint64ToByte(pageID)
-	err := PagePropetiesIndexer.db.Update(func(txn *badger.Txn) error {
+	err := pagePropetiesIndexer.db.Update(func(txn *badger.Txn) error {
 		err := txn.Delete([]byte(pageString))
 		return err
 	})
