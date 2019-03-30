@@ -155,7 +155,9 @@ func main() {
 		})
 
 		// Preprocess page text
-		content := tokenizer.Tokenize(e.ChildText(text))
+		content := tokenizer.Tokenize(text)
+
+		fmt.Println(content)
 
 		processedTitle := tokenizer.Tokenize(title)
 
