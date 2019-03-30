@@ -33,8 +33,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	// rootPage := "https://www.cse.ust.hk"
-	rootPage := "https://apartemen.win/comp4321/page1.html"
+	rootPage := "https://www.cse.ust.hk"
+	// rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -85,7 +85,7 @@ func main() {
 	pages := []page{}
 
 	crawler := colly.NewCollector(
-		colly.MaxDepth(4),
+		colly.MaxDepth(2),
 		// colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 	)
@@ -134,7 +134,7 @@ func main() {
 		id, _ := documentIndexer.GetValueFromKey(temp.url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url, size, temp.date_modified))
 
-		// temp.id = pageMap.Get(temp.url).(int)
+		temp.id = pageMap.Get(temp.url).(int)
 		temp.content = tokenizer.Tokenize(e.ChildText("body"))
 
 		// Check for duplicate words in the document
