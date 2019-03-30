@@ -3,15 +3,16 @@ package main
 import (
 	"github.com/gocolly/colly"
 	//"github.com/gocolly/colly/debug"
-	"comp4321/concurrentMap"
-	Indexer "comp4321/indexer"
-	"comp4321/tokenizer"
+	"github.com/hskrishandi/comp4321/concurrentMap"
+	Indexer "github.com/hskrishandi/comp4321/indexer"
+	"github.com/hskrishandi/comp4321/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+	"strings"
 )
 
 var idCount int = 2
@@ -134,8 +135,18 @@ func main() {
 		id, _ := documentIndexer.GetValueFromKey(temp.url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url, size, temp.date_modified))
 
+		text := e.ChildText("body")
+
+		e.ForEach("script", func(_ int, elem *colly.HTMLElement) {
+			text = strings.Replace(text, elem.Text, " ", 1)  
+		})
+
+		e.ForEach("style", func(_ int, elem *colly.HTMLElement) {
+			text = strings.Replace(text, elem.Text, " ", 1)  
+		})
+
 		// temp.id = pageMap.Get(temp.url).(int)
-		temp.content = tokenizer.Tokenize(e.ChildText("body"))
+		temp.content = tokenizer.Tokenize(text)
 
 		// Check for duplicate words in the document
 		wordList := make(map[uint64]*Indexer.InvertedFile)
@@ -229,9 +240,9 @@ func main() {
 		fmt.Println("URL:", items.Value.(int))
 	}
 
-	contentInvertedIndexer.Iterate()
-	wordIndexer.Iterate()
-	documentIndexer.Iterate()
-	pagePropertiesIndexer.Iterate()
-	documentForwardIndexer.Iterate()
+	// contentInvertedIndexer.Iterate()
+	// wordIndexer.Iterate()
+	// documentIndexer.Iterate()
+	// pagePropertiesIndexer.Iterate()
+	// documentForwardIndexer.Iterate()
 }
