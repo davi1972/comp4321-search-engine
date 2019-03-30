@@ -1,24 +1,25 @@
 package Indexer
 
 import (
-	"github.com/dgraph-io/badger"
-	"os"
 	"fmt"
-	"strings"
+	"os"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/dgraph-io/badger"
 )
 
 type PagePropetiesIndexer struct {
-	db *badger.DB
+	db           *badger.DB
 	databasePath string
 }
 
 type Page struct {
-	id uint64
-	title string
-	url string
-	size int
+	id           uint64
+	title        string
+	url          string
+	size         int
 	dateModified time.Time
 }
 
@@ -56,7 +57,7 @@ func (pagePropetiesIndexer *PagePropetiesIndexer) Initialize(path string) error 
 	if err != nil {
 		return fmt.Errorf("Error while initializing: %s", err)
 	}
-	pagePropetiesIndexer.db = db 
+	pagePropetiesIndexer.db = db
 	pagePropetiesIndexer.databasePath = path
 	return err
 }
@@ -69,18 +70,18 @@ func (pagePropetiesIndexer *PagePropetiesIndexer) Iterate() error {
 		it := txn.NewIterator(opts)
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
-		  item := it.Item()
-		  k := item.Key()
-		  err := item.Value(func(v []byte) error {
-			fmt.Printf("key=%d, value=%s\n", byteToUint64(k), v)
-			return nil
-		  })
-		  if err != nil {
-			return err
-		  }
+			item := it.Item()
+			k := item.Key()
+			err := item.Value(func(v []byte) error {
+				fmt.Printf("key=%d, value=%s\n", byteToUint64(k), v)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
 		}
 		return nil
-	  })
+	})
 	return err
 }
 
@@ -107,10 +108,9 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) AddKeyToPageProperties(pageID 
 		// If key already exists, have to delete and add new one
 		if err == nil {
 			txn.Delete([]byte(pageString))
-		} 
+		}
 
 		pagePropetiesString := pageToString(&page)
-
 
 		err = txn.Set(uint64ToByte(pageID), []byte(pagePropetiesString))
 		return err
@@ -128,7 +128,7 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageI
 		item, err := txn.Get(pageString)
 		if err != nil {
 			return err
-		} 
+		}
 		itemErr := item.Value(func(val []byte) error {
 			resultPage = stringToPage(string(val))
 			return nil
@@ -143,7 +143,6 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageI
 	}
 	return resultPage, err
 }
-
 
 func (PagePropetiesIndexer *PagePropetiesIndexer) DeletePagePropertiesFromKey(pageID uint64) error {
 	pageString := uint64ToByte(pageID)
