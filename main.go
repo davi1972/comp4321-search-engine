@@ -17,8 +17,8 @@ import (
 
 type page struct {
 	id       uint64
-	children map[uint64]interface{}
-	parent   map[uint64]interface{}
+	children concurrentMap.ConcurrentMap
+	parent   concurrentMap.ConcurrentMap
 }
 
 var requestID string
@@ -31,10 +31,6 @@ func main() {
 	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
-
-	pageMap := concurrentMap.ConcurrentMap{}
-	pageMap.Init()
-	pageMap.Set(rootPage, 1)
 
 	documentIndexer := &Indexer.MappingIndexer{}
 	docErr := documentIndexer.Initialize(wd + "/db/documentIndex")
@@ -216,7 +212,8 @@ func main() {
 		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
 
 		temp := page{}
-		temp.children = make(map[uint64]interface{})
+		temp.children = concurrentMap.ConcurrentMap{}
+		temp.children.Init()
 
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
@@ -233,8 +230,8 @@ func main() {
 				defer resp.Body.Close()
 				childID, _ := documentIndexer.GetValueFromKey(url)
 
-				if _, contained := temp.children[childID]; !contained {
-					temp.children[childID] = nil
+				if _, contained := temp.children.Get(childID); !contained {
+					temp.children.Set(childID, nil)
 				}
 
 				e.Request.Visit(url)
@@ -242,10 +239,7 @@ func main() {
 		}
 		wg.Wait()
 		pages = append(pages, temp)
-		childUIntList := make([]uint64, 0, len(temp.children))
-		for k := range temp.children {
-			childUIntList = append(childUIntList, k)
-		}
+		childUIntList := temp.children.ConvertToSliceOfKeys()
 		fmt.Println(childUIntList)
 		err = parentChildDocumentForwardIndexer.AddIdListToKey(id, childUIntList)
 	})
@@ -266,4 +260,5 @@ func main() {
 	pagePropertiesIndexer.Iterate()
 	documentWordForwardIndexer.Iterate()
 	parentChildDocumentForwardIndexer.Iterate()
+	childParentDocumentForwardIndexer.Iterate()
 }
