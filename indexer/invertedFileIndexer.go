@@ -105,7 +105,6 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 
 	// Construct a string to to add to inverted file
 	valueString := invertedFileToString(invertedFile)
-	fmt.Printf("Adding Inverted File: %s on Key: %d \n", valueString, wordID)
 	err := invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get(keyString)
 		// If key already exists, have to append/insert
@@ -155,15 +154,18 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 	return err
 }
 
-func (invertedFileIndexer *InvertedFileIndexer) GetInvertedFileFromKey(wordID uint64) (InvertedFile, error) {
+func (invertedFileIndexer *InvertedFileIndexer) GetInvertedFileFromKey(wordID uint64) ([]InvertedFile, error) {
 	keyString := uint64ToByte(wordID)
-	result := InvertedFile{}
+	result := make([]InvertedFile, 0)
 	err := invertedFileIndexer.db.View(func(txn *badger.Txn) error {
 		item, getErr := txn.Get(keyString)
 		if getErr == nil {
 			_ = item.Value(func(val []byte) error {
 				resultString := string(val)
-				result = stringToInvertedFile(resultString)
+				resultList := strings.Split(resultString, ",")
+				for _, v := range resultList {
+					result = append(result, stringToInvertedFile(v))
+				}
 				return nil
 			})
 		}
@@ -175,7 +177,7 @@ func (invertedFileIndexer *InvertedFileIndexer) GetInvertedFileFromKey(wordID ui
 	return result, err
 }
 
-func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWord(wordID uint64) error {
+func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromKey(wordID uint64) error {
 	keyString := uint64ToByte(wordID)
 	err := invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
 		err := txn.Delete([]byte(keyString))
