@@ -62,7 +62,7 @@ func (pagePropetiesIndexer *PagePropetiesIndexer) Initialize(path string) error 
 }
 
 func (pagePropetiesIndexer *PagePropetiesIndexer) Iterate() error {
-	fmt.Println("iterating over InvertedFile")
+	fmt.Println("iterating over Page Properties")
 	err := pagePropetiesIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10

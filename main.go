@@ -121,7 +121,10 @@ func main() {
 
 
 		// Store Document id and properties
-		documentIndexer.AddKeyToIndex(temp.url)
+		_, err := documentIndexer.AddKeyToIndex(temp.url)
+		if err != nil {
+			fmt.Println(err)
+		}
 		id, _ := documentIndexer.GetValueFromKey(temp.url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url, size, temp.date_modified))
 		

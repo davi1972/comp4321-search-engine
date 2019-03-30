@@ -51,9 +51,13 @@ func (mappingIndexer *MappingIndexer) AddKeyToIndex(key string) (uint64, error) 
 	var id uint64
 	var err error
 	err = mappingIndexer.db.Update(func(txn *badger.Txn) error {
-		// Get new value for index
-		id, err = mappingIndexer.sequence.Next()
-		err = txn.Set([]byte(key), []byte(uint64ToByte(id)))
+		_, err := txn.Get([]byte(key))
+		if err == badger.ErrKeyNotFound {
+			// Get new value for index
+			id, err = mappingIndexer.sequence.Next()
+			err = txn.Set([]byte(key), []byte(uint64ToByte(id)))
+			return err
+		}
 		return err
 	})
 	if err != nil {

@@ -120,18 +120,23 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 				
 				// Special case if the inverted file is the largest
 				if invertedFileList[len(invertedFileList) - 1].pageID < invertedFile.pageID {
-					valueString = valueString + "," + invertedFileToString(invertedFile)
+					invertedFileList = append(invertedFileList, invertedFile)
 				} else {
 					// Insert to sorted Inverted File String
-					for _, v := range invertedFileList {
+					for i, v := range invertedFileList {
 						if v.pageID < invertedFile.pageID {
-							valueString = valueString + "," + invertedFileToString(invertedFile)
+							invertedFileList = append(invertedFileList, InvertedFile{})
+							copy(invertedFileList[i+1:], invertedFileList[i:])
+							invertedFileList[i] = invertedFile
 							break
 						}
-						valueString = valueString + "," + invertedFileToString(v)
+						
 					}
 				}
-				fmt.Println("new Value String: " + valueString)
+				valueString = invertedFileToString(invertedFileList[0]) 
+				for _, v := range invertedFileList[1:] {
+					valueString = valueString + "," + invertedFileToString(v)
+				}
 				return nil
 			})
 			if itemErr != nil {
@@ -140,7 +145,6 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 
 			// Delete the old one
 			err = txn.Delete(keyString)
-			return err
 		} 
 		err = txn.Set(keyString, []byte(valueString))
 		return err
