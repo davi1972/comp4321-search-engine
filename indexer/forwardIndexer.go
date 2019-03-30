@@ -49,11 +49,11 @@ func (forwardIndexer *ForwardIndexer) AddIdListToKey(documentId uint64, idList [
 	var valueString string
 	if len(idList) > 0 {
 		valueString = strconv.FormatUint(idList[0], 10)
-
-		for _, v := range idList[1:] {
-			valueString = valueString + " " + strconv.FormatUint(v, 10)
+		if len(idList) > 1 {
+			for _, v := range idList[1:] {
+				valueString = valueString + " " + strconv.FormatUint(v, 10)
+			}
 		}
-
 	}
 	err := forwardIndexer.db.Update(func(txn *badger.Txn) error {
 		err := txn.Set(uint64ToByte(documentId), []byte(valueString))
