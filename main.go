@@ -14,17 +14,10 @@ import (
 	"time"
 )
 
-var idCount int = 2
-var pageMap map[string]int
-
 type page struct {
-	id            int
-	title         string
-	url           string
-	size          int
-	content       []string
-	children      []int
-	date_modified time.Time
+	id       uint64
+	children []uint64
+	parent   []uint64
 }
 
 var requestID string
@@ -33,8 +26,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	// rootPage := "https://apartemen.win/comp4321/page1.html"
+	// rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -66,6 +59,14 @@ func main() {
 	defer pagePropertiesIndexer.Backup()
 	defer pagePropertiesIndexer.Release()
 
+	titleInvertedIndexer := &Indexer.InvertedFileIndexer{}
+	titleInvertedErr := titleInvertedIndexer.Initialize(wd + "/db/titleInvertedIndex")
+	if titleInvertedErr != nil {
+		fmt.Printf("error when initializing page properties: %s\n", titleInvertedErr)
+	}
+	defer titleInvertedIndexer.Backup()
+	defer titleInvertedIndexer.Release()
+
 	contentInvertedIndexer := &Indexer.InvertedFileIndexer{}
 	contentInvertedErr := contentInvertedIndexer.Initialize(wd + "/db/contentInvertedIndex")
 	if contentInvertedErr != nil {
@@ -74,13 +75,29 @@ func main() {
 	defer contentInvertedIndexer.Backup()
 	defer contentInvertedIndexer.Release()
 
-	documentForwardIndexer := &Indexer.ForwardIndexer{}
-	documentForwardIndexerErr := documentForwardIndexer.Initialize(wd + "/db/documentForwardIndex")
-	if documentForwardIndexerErr != nil {
-		fmt.Printf("error when initializing page properties: %s\n", contentInvertedErr)
+	documentWordForwardIndexer := &Indexer.ForwardIndexer{}
+	documentWordForwardIndexerErr := documentWordForwardIndexer.Initialize(wd + "/db/documentWordForwardIndex")
+	if documentWordForwardIndexerErr != nil {
+		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", documentWordForwardIndexerErr)
 	}
-	defer documentForwardIndexer.Backup()
-	defer documentForwardIndexer.Release()
+	defer documentWordForwardIndexer.Backup()
+	defer documentWordForwardIndexer.Release()
+
+	parentChildDocumentForwardIndexer := &Indexer.ForwardIndexer{}
+	parentChildDocumentForwardIndexerErr := parentChildDocumentForwardIndexer.Initialize(wd + "/db/parentChildDocumentForwardIndex")
+	if parentChildDocumentForwardIndexerErr != nil {
+		fmt.Printf("error when initializing parentDocument -> childDocument forward Indexer: %s\n", parentChildDocumentForwardIndexerErr)
+	}
+	defer parentChildDocumentForwardIndexer.Backup()
+	defer parentChildDocumentForwardIndexer.Release()
+
+	childParentDocumentForwardIndexer := &Indexer.ForwardIndexer{}
+	childParentDocumentForwardIndexerErr := childParentDocumentForwardIndexer.Initialize(wd + "/db/childParentDocumentForwardIndex")
+	if childParentDocumentForwardIndexerErr != nil {
+		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
+	}
+	defer childParentDocumentForwardIndexer.Backup()
+	defer childParentDocumentForwardIndexer.Release()
 
 	pages := []page{}
 
@@ -105,10 +122,8 @@ func main() {
 
 	crawler.OnHTML("html", func(e *colly.HTMLElement) {
 
-		temp := page{}
-
-		temp.title = e.ChildText("title")
-		temp.url = e.Request.URL.String()
+		title := e.ChildText("title")
+		url := e.Request.URL.String()
 
 		size, _ := strconv.Atoi(e.Response.Headers.Get("Content-Length"))
 
@@ -116,58 +131,80 @@ func main() {
 			size = len(e.Text)
 		}
 
-		temp.size = size
-
 		date := e.Response.Headers.Get("Last-Modified")
-
+		dateTime := time.Time{}
 		if len(date) != 0 {
-			temp.date_modified, _ = time.Parse(time.RFC1123, date)
+			dateTime, _ = time.Parse(time.RFC1123, date)
 		} else {
-			temp.date_modified = time.Now()
+			dateTime = time.Now()
 		}
 
 		// Store Document id and properties
-		_, err := documentIndexer.AddKeyToIndex(temp.url)
+		_, err := documentIndexer.AddKeyToIndex(url)
 		if err != nil {
 			fmt.Println(err)
 		}
-		id, _ := documentIndexer.GetValueFromKey(temp.url)
-		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url, size, temp.date_modified))
+		id, _ := documentIndexer.GetValueFromKey(url)
+		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
 
-		temp.id = pageMap.Get(temp.url).(int)
-		temp.content = tokenizer.Tokenize(e.ChildText("body"))
+		content := tokenizer.Tokenize(e.ChildText("body"))
 
-		// Check for duplicate words in the document
-		wordList := make(map[uint64]*Indexer.InvertedFile)
-		for i, v := range temp.content {
+		processedTitle := tokenizer.Tokenize(title)
+
+		titleWordList := make(map[uint64]*Indexer.InvertedFile)
+		for i, v := range processedTitle {
 			// Add Word to id index
 			wordID, err := wordIndexer.GetValueFromKey(v)
 			if err != nil {
 				wordID, _ = wordIndexer.AddKeyToIndex(v)
 			}
 
-			invFile, contain := wordList[wordID]
+			invFile, contain := titleWordList[wordID]
 			if contain {
 				invFile.AddWordPositions(uint64(i))
 			} else {
-				wordList[wordID] = Indexer.CreateInvertedFile(id)
-				wordList[wordID].AddWordPositions(uint64(i))
+				titleWordList[wordID] = Indexer.CreateInvertedFile(id)
+				titleWordList[wordID].AddWordPositions(uint64(i))
 			}
 		}
 
-		for k, v := range wordList {
+		for k, v := range titleWordList {
+			titleInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
+		}
+
+		// Check for duplicate words in the document
+		contentWordList := make(map[uint64]*Indexer.InvertedFile)
+		for i, v := range content {
+			// Add Word to id index
+			wordID, err := wordIndexer.GetValueFromKey(v)
+			if err != nil {
+				wordID, _ = wordIndexer.AddKeyToIndex(v)
+			}
+
+			invFile, contain := contentWordList[wordID]
+			if contain {
+				invFile.AddWordPositions(uint64(i))
+			} else {
+				contentWordList[wordID] = Indexer.CreateInvertedFile(id)
+				contentWordList[wordID].AddWordPositions(uint64(i))
+			}
+		}
+
+		for k, v := range contentWordList {
 			contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
 		}
 
 		// Get List word words in this document in slice
-		wordUIntList := make([]uint64, 0, len(wordList))
-		for k := range wordList {
+		wordUIntList := make([]uint64, 0, len(contentWordList))
+		for k := range contentWordList {
 			wordUIntList = append(wordUIntList, k)
 		}
 
-		documentForwardIndexer.AddWordIdListToKey(id, wordUIntList)
+		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
 
-		temp.children = []int{}
+		temp := page{}
+
+		temp.children = []uint64{}
 
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
@@ -182,20 +219,21 @@ func main() {
 					return
 				}
 				defer resp.Body.Close()
-
-				pageMap.Set(url, idCount)
-
-				idCount++
-
-				temp.children = append(temp.children, pageMap.Get(url).(int))
+				childID, _ := documentIndexer.GetValueFromKey(url)
+				if temp.children != temp.children.Contains(childID) {
+					temp.children = append(temp.children, childID)
+				}
 
 				e.Request.Visit(url)
 			}(url)
 		}
 		wg.Wait()
 		pages = append(pages, temp)
-
+		fmt.Println(temp.children)
+		parentChildDocumentForwardIndexer.AddIdListToKey(id, temp.children)
 	})
+
+	// After finished, iterate of
 
 	crawler.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
@@ -204,34 +242,11 @@ func main() {
 	crawler.Visit(rootPage)
 
 	crawler.Wait()
-	fmt.Println("Pages: ")
-	for _, page := range pages {
-		fmt.Println("ID:", page.id)
-		fmt.Println("url:", page.url)
-		fmt.Println("Title:", page.title)
-		fmt.Println("Size:", page.size)
-		fmt.Println("Content:", page.content)
-
-		fmt.Print("children:")
-		for _, child := range page.children {
-			fmt.Print(child, " ")
-		}
-		fmt.Print("\n")
-		fmt.Println("date_modified:", page.date_modified.Format(time.RFC1123))
-		fmt.Print("\n")
-	}
-
-	fmt.Println("\nURL to ID maps:")
-
-	pageMapChan := pageMap.Iter()
-	for items := range pageMapChan {
-		fmt.Println("ID:", items.Key)
-		fmt.Println("URL:", items.Value.(int))
-	}
 
 	contentInvertedIndexer.Iterate()
 	wordIndexer.Iterate()
 	documentIndexer.Iterate()
 	pagePropertiesIndexer.Iterate()
-	documentForwardIndexer.Iterate()
+	documentWordForwardIndexer.Iterate()
+	parentChildDocumentForwardIndexer.Iterate()
 }
