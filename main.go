@@ -14,10 +14,16 @@ import (
 	"time"
 )
 
-type page struct {
+type pageMap struct {
 	id       uint64
 	children concurrentMap.ConcurrentMap
 	parent   concurrentMap.ConcurrentMap
+}
+
+type page struct {
+	id       uint64
+	children []uint64
+	parent   []uint64
 }
 
 var requestID string
@@ -199,7 +205,7 @@ func main() {
 		fmt.Println(wordUIntList)
 		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
 
-		temp := page{}
+		temp := pageMap{}
 		temp.children = concurrentMap.ConcurrentMap{}
 		temp.children.Init()
 
@@ -226,7 +232,7 @@ func main() {
 			}(url)
 		}
 		wg.Wait()
-		pages = append(pages, temp)
+		pages = append(pages, page{temp.id, temp.children.ConvertToSliceOfKeys(), temp.parent.ConvertToSliceOfKeys()})
 		childUIntList := temp.children.ConvertToSliceOfKeys()
 		fmt.Println(childUIntList)
 		err = parentChildDocumentForwardIndexer.AddIdListToKey(id, childUIntList)
