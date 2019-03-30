@@ -34,8 +34,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	// rootPage := "https://apartemen.win/comp4321/page1.html"
+	// rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -86,7 +86,7 @@ func main() {
 	pages := []page{}
 
 	crawler := colly.NewCollector(
-		colly.MaxDepth(2),
+		colly.MaxDepth(3),
 		// colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 	)
@@ -137,18 +137,18 @@ func main() {
 
 		text := e.ChildText("body")
 
+		// Remove javascripts and styles in page text
 		e.ForEach("script", func(_ int, elem *colly.HTMLElement) {
 			text = strings.Replace(text, elem.Text, " ", 1)  
 		})
-
 		e.ForEach("style", func(_ int, elem *colly.HTMLElement) {
 			text = strings.Replace(text, elem.Text, " ", 1)  
 		})
 
-		// temp.id = pageMap.Get(temp.url).(int)
+		// Preprocess page text
 		temp.content = tokenizer.Tokenize(text)
-		temp.id = pageMap.Get(temp.url).(int)
-		temp.content = tokenizer.Tokenize(e.ChildText("body"))
+		// temp.id = pageMap.Get(temp.url).(int)
+
 
 		// Check for duplicate words in the document
 		wordList := make(map[uint64]*Indexer.InvertedFile)
