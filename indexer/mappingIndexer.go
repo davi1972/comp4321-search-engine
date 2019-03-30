@@ -85,6 +85,7 @@ func (mappingIndexer *MappingIndexer) GetValueFromKey(key string) (uint64, error
 }
 
 func (mappingIndexer *MappingIndexer) Iterate() {
+	fmt.Println("Iterating over Mapping Index")
 	_ = mappingIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
@@ -94,7 +95,7 @@ func (mappingIndexer *MappingIndexer) Iterate() {
 		  item := it.Item()
 		  k := item.Key()
 		  err := item.Value(func(v []byte) error {
-			fmt.Printf("key=%s, value=%s\n", k, v)
+			fmt.Printf("key=%s, value=%d\n", k, byteToUint64(v))
 			return nil
 		  })
 		  if err != nil {

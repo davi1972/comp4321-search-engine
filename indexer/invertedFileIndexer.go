@@ -105,6 +105,7 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 
 	// Construct a string to to add to inverted file
 	valueString := invertedFileToString(invertedFile)
+	fmt.Printf("Adding Inverted File: %s on Key: %d \n", valueString, wordID)
 	err := invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get(keyString)
 		// If key already exists, have to append/insert
@@ -116,12 +117,11 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 				for i, v := range invertedFileListString {
 					invertedFileList[i] = stringToInvertedFile(v)
 				}
-
+				
 				// Special case if the inverted file is the largest
 				if invertedFileList[len(invertedFileList) - 1].pageID < invertedFile.pageID {
 					valueString = valueString + "," + invertedFileToString(invertedFile)
 				} else {
-					valueString = ""
 					// Insert to sorted Inverted File String
 					for _, v := range invertedFileList {
 						if v.pageID < invertedFile.pageID {
@@ -131,6 +131,7 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 						valueString = valueString + "," + invertedFileToString(v)
 					}
 				}
+				fmt.Println("new Value String: " + valueString)
 				return nil
 			})
 			if itemErr != nil {
@@ -138,7 +139,8 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 			}
 
 			// Delete the old one
-			txn.Delete(keyString)
+			err = txn.Delete(keyString)
+			return err
 		} 
 		err = txn.Set(keyString, []byte(valueString))
 		return err

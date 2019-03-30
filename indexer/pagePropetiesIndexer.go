@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"time"
 )
 
 type PagePropetiesIndexer struct {
@@ -17,24 +18,30 @@ type Page struct {
 	id uint64
 	title string
 	url string
+	size int
+	dateModified time.Time
 }
 
-func CreatePage(id uint64, title string, url string) Page {
+func CreatePage(id uint64, title string, url string, size int, date time.Time) Page {
 	page := Page{}
 	page.id = id
 	page.title = title
 	page.url = url
+	page.size = size
+	page.dateModified = date
 	return page
 }
 
 func pageToString(page *Page) string {
-	return string(uint64ToByte(page.id)) + "/page/" + page.title + "/page/" + page.url
+	return string(uint64ToByte(page.id)) + "/page/" + page.title + "/page/" + page.url + "/page/" + strconv.FormatInt(int64(page.size), 10) + "/page/" + page.dateModified.Format(time.RFC3339)
 }
 
 func stringToPage(str string) Page {
 	splitString := strings.Split(str, "/page/")
 	idString, _ := strconv.ParseUint(splitString[0], 10, 64)
-	return Page{idString, splitString[1], splitString[2]}
+	size, _ := strconv.Atoi(splitString[3])
+	time, _ := time.Parse(time.RFC3339, splitString[4])
+	return Page{idString, splitString[1], splitString[2], size, time}
 }
 
 // After initializing the PagePropetiesIndexer, we need to call defer PagePropetiesIndexer.Release()
@@ -51,6 +58,29 @@ func (pagePropetiesIndexer *PagePropetiesIndexer) Initialize(path string) error 
 	}
 	pagePropetiesIndexer.db = db 
 	pagePropetiesIndexer.databasePath = path
+	return err
+}
+
+func (pagePropetiesIndexer *PagePropetiesIndexer) Iterate() error {
+	fmt.Println("iterating over InvertedFile")
+	err := pagePropetiesIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+		  item := it.Item()
+		  k := item.Key()
+		  err := item.Value(func(v []byte) error {
+			fmt.Printf("key=%d, value=%s\n", byteToUint64(k), v)
+			return nil
+		  })
+		  if err != nil {
+			return err
+		  }
+		}
+		return nil
+	  })
 	return err
 }
 
@@ -100,7 +130,6 @@ func (PagePropetiesIndexer *PagePropetiesIndexer) GetPagePropertiesFromKey(pageI
 			return err
 		} 
 		itemErr := item.Value(func(val []byte) error {
-			fmt.Println("Get value: %s", string(val))
 			resultPage = stringToPage(string(val))
 			return nil
 		})

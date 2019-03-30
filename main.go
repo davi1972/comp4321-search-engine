@@ -32,8 +32,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	// rootPage := "https://apartemen.win/comp4321/page1.html"
+	// rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -76,7 +76,7 @@ func main() {
 	pages := []page{}
 	
 	crawler := colly.NewCollector(		
-		colly.MaxDepth(1),
+		colly.MaxDepth(2),
 		// colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 	)
@@ -101,40 +101,6 @@ func main() {
 		
 		temp.title = e.ChildText("title")
 		temp.url = e.Request.URL.String()
-		
-		// Store Document id and properties
-		documentIndexer.AddKeyToIndex(temp.url)
-		id, _ := documentIndexer.GetValueFromKey(temp.url)
-		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url))
-		
-		temp.id = pageMap.Get(temp.url).(int)
-		temp.content = tokenizer.Tokenize(e.ChildText("body"))
-
-		// Check for duplicate words in the document
-		wordList := make(map[uint64]*Indexer.InvertedFile)
-		for i, v := range temp.content {
-			// Add Word to id index
-			wordId, err := wordIndexer.GetValueFromKey(v)
-			if err != nil {
-				wordId, _ = wordIndexer.AddKeyToIndex(v)
-			}
-
-			invFile, contain := wordList[wordId]
-			if contain {
-				invFile.AddWordPositions(uint64(i))
-			} else {
-				wordList[wordId] = Indexer.CreateInvertedFile(wordId)
-				wordList[wordId].AddWordPositions(uint64(i))
-			}
-		}
-
-		for k, v := range wordList {
-			contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
-		}
-
-		contentInvertedIndexer.Iterate()
-
-		temp.children = []int{}
 
 		size, _ := strconv.Atoi(e.Response.Headers.Get("Content-Length"))
 
@@ -152,6 +118,39 @@ func main() {
 		} else {
 			temp.date_modified = time.Now()
 		}
+
+
+		// Store Document id and properties
+		documentIndexer.AddKeyToIndex(temp.url)
+		id, _ := documentIndexer.GetValueFromKey(temp.url)
+		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, temp.title, temp.url, size, temp.date_modified))
+		
+		temp.id = pageMap.Get(temp.url).(int)
+		temp.content = tokenizer.Tokenize(e.ChildText("body"))
+
+		// Check for duplicate words in the document
+		wordList := make(map[uint64]*Indexer.InvertedFile)
+		for i, v := range temp.content {
+			// Add Word to id index
+			wordId, err := wordIndexer.GetValueFromKey(v)
+			if err != nil {
+				wordId, _ = wordIndexer.AddKeyToIndex(v)
+			}
+
+			invFile, contain := wordList[wordId]
+			if contain {
+				invFile.AddWordPositions(uint64(i))
+			} else {
+				wordList[wordId] = Indexer.CreateInvertedFile(id)
+				wordList[wordId].AddWordPositions(uint64(i))
+			}
+		}
+		fmt.Println(wordList)
+
+		for k, v := range wordList {
+			contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
+		}
+		temp.children = []int{}
 
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
@@ -213,4 +212,10 @@ func main() {
 		fmt.Println("URL:", items.Value.(int))
 	}
 
+
+
+	contentInvertedIndexer.Iterate()
+	wordIndexer.Iterate()
+	documentIndexer.Iterate()
+	pagePropertiesIndexer.Iterate()
 }	
