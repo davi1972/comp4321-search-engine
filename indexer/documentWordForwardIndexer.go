@@ -9,7 +9,7 @@ import (
 	"github.com/dgraph-io/badger"
 )
 
-type DocumenWordForwardIndexer struct {
+type DocumentWordForwardIndexer struct {
 	db           *badger.DB
 	databasePath string
 }
@@ -34,7 +34,7 @@ func stringToWordFrequency(str string) WordFrequency {
 	return WordFrequency{uint64(id), uint64(freq)}
 }
 
-func (documenWordForwardIndexer *DocumenWordForwardIndexer) Initialize(path string) error {
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) Initialize(path string) error {
 	if err := os.MkdirAll(path, 0774); err != nil {
 		return err
 	}
@@ -45,54 +45,53 @@ func (documenWordForwardIndexer *DocumenWordForwardIndexer) Initialize(path stri
 	if err != nil {
 		return fmt.Errorf("Error while initializing: %s", err)
 	}
-	documenWordForwardIndexer.db = db
-	documenWordForwardIndexer.databasePath = path
+	documentWordForwardIndexer.db = db
+	documentWordForwardIndexer.databasePath = path
 	return err
 }
 
-func (documenWordForwardIndexer *DocumenWordForwardIndexer) Release() error {
-	return documenWordForwardIndexer.db.Close()
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) Release() error {
+	return documentWordForwardIndexer.db.Close()
 }
 
-func (documenWordForwardIndexer *DocumenWordForwardIndexer) Backup() error {
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) Backup() error {
 	fmt.Println("Doing Database Backup")
-	f, err := os.Create(documenWordForwardIndexer.databasePath)
+	f, err := os.Create(documentWordForwardIndexer.databasePath)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	documenWordForwardIndexer.db.Backup(f, 0)
+	documentWordForwardIndexer.db.Backup(f, 0)
 	return err
 }
 
-// func (documenWordForwardIndexer *DocumenWordForwardIndexer) AddWordFrequencyListToKey(documentId uint64, wordFrequencyList []WordFrequency) error {
-// 	var valueString string
-// 	if len(wordFrequencyList) > 0 {
-// 		valueString = wordFrequencyToString(&wordFrequencyList[0])
-// 		for _, word := range wordFrequencyList {
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) AddWordFrequencyListToKey(documentId uint64, wordFrequencyList []WordFrequency) error {
+	var valueString string
+	if len(wordFrequencyList) > 0 {
+		valueString = wordFrequencyToString(&wordFrequencyList[0])
+		for _, word := range wordFrequencyList {
+			valueString = valueString + "," + wordFrequencyToString(&word)
+		}
+	}
+	err := documentWordForwardIndexer.db.Update(func(txn *badger.Txn) error {
+		err := txn.Set(uint64ToByte(documentId), []byte(valueString))
+		return err
+	})
+	if err != nil {
+		err = fmt.Errorf("Error in adding Key to Index: %s", err)
+	}
+	return err
+}
 
-// 		}
-// 	}
-// 	err := documenWordForwardIndexer.db.Update(func(txn *badger.Txn) error {
-// 		err := txn.Set(uint64ToByte(documentId), []byte(valueString))
-// 		return err
-// 	})
-// 	if err != nil {
-// 		err = fmt.Errorf("Error in adding Key to Index: %s", err)
-// 	}
-// 	return err
-// }
-
-func (documenWordForwardIndexer *DocumenWordForwardIndexer) GetIdListFromKey(documentId uint64) ([]uint64, error) {
-	result := make([]uint64, 0)
-	err := documenWordForwardIndexer.db.View(func(txn *badger.Txn) error {
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetWordFrequencyListFromKey(documentId uint64) ([]WordFrequency, error) {
+	result := make([]WordFrequency, 0)
+	err := documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(uint64ToByte(documentId))
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
-				resultList := strings.Split(string(val), " ")
+				resultList := strings.Split(string(val), ",")
 				for _, v := range resultList {
-					val, _ := strconv.Atoi(v)
-					result = append(result, uint64(val))
+					result = append(result, stringToWordFrequency(v))
 				}
 				return nil
 			})
@@ -109,8 +108,8 @@ func (documenWordForwardIndexer *DocumenWordForwardIndexer) GetIdListFromKey(doc
 	return result, err
 }
 
-func (documenWordForwardIndexer *DocumenWordForwardIndexer) DeleteKeyValuePair(documentId uint64) error {
-	err := documenWordForwardIndexer.db.Update(func(txn *badger.Txn) error {
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) DeleteKeyValuePair(documentId uint64) error {
+	err := documentWordForwardIndexer.db.Update(func(txn *badger.Txn) error {
 		err := txn.Delete(uint64ToByte(documentId))
 		return err
 	})
@@ -120,9 +119,9 @@ func (documenWordForwardIndexer *DocumenWordForwardIndexer) DeleteKeyValuePair(d
 	return err
 }
 
-func (documenWordForwardIndexer *DocumenWordForwardIndexer) Iterate() error {
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) Iterate() error {
 	fmt.Println("iterating over Forward Index")
-	err := documenWordForwardIndexer.db.View(func(txn *badger.Txn) error {
+	err := documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
 		it := txn.NewIterator(opts)
