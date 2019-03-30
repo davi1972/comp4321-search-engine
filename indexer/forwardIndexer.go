@@ -48,7 +48,6 @@ func (forwardIndexer *ForwardIndexer) Backup() error {
 func (forwardIndexer *ForwardIndexer) AddIdListToKey(documentId uint64, idList []uint64) error {
 	var valueString string
 	if len(idList) > 0 {
-		fmt.Println("test")
 		valueString = strconv.FormatUint(idList[0], 10)
 
 		for _, v := range idList[1:] {
@@ -57,11 +56,7 @@ func (forwardIndexer *ForwardIndexer) AddIdListToKey(documentId uint64, idList [
 
 	}
 	err := forwardIndexer.db.Update(func(txn *badger.Txn) error {
-		_, err := txn.Get(uint64ToByte(documentId))
-		if err == badger.ErrKeyNotFound {
-			err = txn.Set(uint64ToByte(documentId), []byte(valueString))
-			return err
-		}
+		err := txn.Set(uint64ToByte(documentId), []byte(valueString))
 		return err
 	})
 	if err != nil {

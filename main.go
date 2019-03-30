@@ -201,8 +201,6 @@ func main() {
 		for k := range contentWordList {
 			wordUIntList = append(wordUIntList, k)
 		}
-		fmt.Println("document -> word")
-		fmt.Println(wordUIntList)
 		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
 
 		temp := pageMap{}
@@ -234,8 +232,8 @@ func main() {
 		wg.Wait()
 		pages = append(pages, page{temp.id, temp.children.ConvertToSliceOfKeys(), temp.parent.ConvertToSliceOfKeys()})
 		childUIntList := temp.children.ConvertToSliceOfKeys()
-		fmt.Println(childUIntList)
 		err = parentChildDocumentForwardIndexer.AddIdListToKey(id, childUIntList)
+		fmt.Println(err)
 	})
 
 	// After finished, iterate of
