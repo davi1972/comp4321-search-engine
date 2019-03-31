@@ -225,41 +225,36 @@ func main() {
 		links := e.ChildAttrs("a[href]", "href")
 		fmt.Println("Links for page: " + url)
 		fmt.Println(links)
-		if len(links) > 0 {
-			fmt.Println("Looping over link for page: " + url)
+		for _, url := range links {
+			url = e.Request.AbsoluteURL(url)
+			wg.Add(1)
+			go func(url string) {
+				defer wg.Done()
+				resp, err := http.Get(url)
+				if err != nil || resp.StatusCode != 200 {
+					return
+				}
+				defer resp.Body.Close()
 
-			for _, url := range links {
-				url = e.Request.AbsoluteURL(url)
-				wg.Add(1)
-				go func(url string) {
-					defer wg.Done()
-					resp, err := http.Get(url)
-					if err != nil || resp.StatusCode != 200 {
-						return
-					}
-					defer resp.Body.Close()
+				childID, err := documentIndexer.GetValueFromKey(url)
+				if err != nil {
+					childID, _ = documentIndexer.AddKeyToIndex(url)
+				}
+				if _, ok := tempMap.children.Get(childID); !ok {
+					tempMap.children.Set(childID, nil)
+				}
 
-					childID, err := documentIndexer.GetValueFromKey(url)
-					if err != nil {
-						childID, _ = documentIndexer.AddKeyToIndex(url)
-					}
-					if _, ok := tempMap.children.Get(childID); !ok {
-						tempMap.children.Set(childID, nil)
-					}
+				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
+				if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
+					pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
+				}
 
-					p := Indexer.CreatePage(childID, "", url, 0, time.Now())
-					if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
-						pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
-					}
-
-					e.Request.Visit(url)
-				}(url)
-			}
-			wg.Wait()
-			pages = append(pages, tempMap)
-			parentChildDocumentForwardIndexer.AddIdListToKey(id, tempMap.children.ConvertToSliceOfKeys())
+				e.Request.Visit(url)
+			}(url)
 		}
-
+		wg.Wait()
+		pages = append(pages, tempMap)
+		parentChildDocumentForwardIndexer.AddIdListToKey(id, tempMap.children.ConvertToSliceOfKeys())
 	})
 
 	crawler.OnRequest(func(r *colly.Request) {
@@ -293,4 +288,5 @@ func main() {
 
 	// err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(l, i)
 	// fmt.Println(err)
+	parentChildDocumentForwardIndexer.GetIdListFromKey(1)
 }
