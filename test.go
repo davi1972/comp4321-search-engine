@@ -1,7 +1,7 @@
 package main
 
 import (
-	Indexer "github.com/hskrishandi/comp4321/indexer"
+	Indexer "comp4321/indexer"
 	"fmt"
 	"os"
 )
@@ -36,7 +36,7 @@ func main() {
 
 	pages, err := pagePropertiesIndexer.All()
 
-	if(err != nil){
+	if err != nil {
 		fmt.Println(err)
 	}
 
@@ -53,11 +53,11 @@ func main() {
 
 		fmt.Println()
 		fmt.Println("Children:")
-		
+
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
 		fmt.Println(children)
 		for _, child := range children {
-			
+
 			childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
 			fmt.Println(childPage.GetUrl())
 		}

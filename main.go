@@ -4,16 +4,16 @@ import (
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
-	"github.com/hskrishandi/comp4321/concurrentMap"
-	Indexer "github.com/hskrishandi/comp4321/indexer"
-	"github.com/hskrishandi/comp4321/tokenizer"
+	"comp4321/concurrentMap"
+	Indexer "comp4321/indexer"
+	"comp4321/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
-	"strings"
 )
 
 type pageMap struct {
@@ -149,10 +149,10 @@ func main() {
 
 		// Remove javascripts and styles in page text
 		e.ForEach("script", func(_ int, elem *colly.HTMLElement) {
-			text = strings.Replace(text, elem.Text, " ", 1)  
+			text = strings.Replace(text, elem.Text, " ", 1)
 		})
 		e.ForEach("style", func(_ int, elem *colly.HTMLElement) {
-			text = strings.Replace(text, elem.Text, " ", 1)  
+			text = strings.Replace(text, elem.Text, " ", 1)
 		})
 
 		// Preprocess page text
@@ -223,36 +223,43 @@ func main() {
 		tempMap.children.Init()
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
-		for _, url := range links {
-			url = e.Request.AbsoluteURL(url)
-			wg.Add(1)
-			go func(url string) {
-				defer wg.Done()
-				resp, err := http.Get(url)
-				if err != nil || resp.StatusCode != 200 {
-					return
-				}
-				defer resp.Body.Close()
+		fmt.Println("Links for page: " + url)
+		fmt.Println(links)
+		if len(links) > 0 {
+			fmt.Println("Looping over link for page: " + url)
 
-				childID, err := documentIndexer.GetValueFromKey(url)
-				if err != nil {
-					childID, _ = documentIndexer.AddKeyToIndex(url)
-				}
-				if _, ok := tempMap.children.Get(childID); !ok {
-					tempMap.children.Set(childID, nil)
-				}
+			for _, url := range links {
+				url = e.Request.AbsoluteURL(url)
+				wg.Add(1)
+				go func(url string) {
+					defer wg.Done()
+					resp, err := http.Get(url)
+					if err != nil || resp.StatusCode != 200 {
+						return
+					}
+					defer resp.Body.Close()
 
-				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
-				if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
-					pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
-				}
+					childID, err := documentIndexer.GetValueFromKey(url)
+					if err != nil {
+						childID, _ = documentIndexer.AddKeyToIndex(url)
+					}
+					if _, ok := tempMap.children.Get(childID); !ok {
+						tempMap.children.Set(childID, nil)
+					}
 
-				e.Request.Visit(url)
-			}(url)
+					p := Indexer.CreatePage(childID, "", url, 0, time.Now())
+					if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
+						pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
+					}
+
+					e.Request.Visit(url)
+				}(url)
+			}
+			wg.Wait()
+			pages = append(pages, tempMap)
+			parentChildDocumentForwardIndexer.AddIdListToKey(id, tempMap.children.ConvertToSliceOfKeys())
 		}
-		wg.Wait()
-		pages = append(pages, tempMap)
-		parentChildDocumentForwardIndexer.AddIdListToKey(id, tempMap.children.ConvertToSliceOfKeys())
+
 	})
 
 	crawler.OnRequest(func(r *colly.Request) {
