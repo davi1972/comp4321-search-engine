@@ -4,15 +4,16 @@ import (
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
-	"comp4321/concurrentMap"
-	Indexer "comp4321/indexer"
-	"comp4321/tokenizer"
+	"github.com/hskrishandi/comp4321/concurrentMap"
+	Indexer "github.com/hskrishandi/comp4321/indexer"
+	"github.com/hskrishandi/comp4321/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+	"strings"
 )
 
 type pageMap struct {
@@ -144,7 +145,18 @@ func main() {
 		}
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
 
-		content := tokenizer.Tokenize(e.ChildText("body"))
+		text := e.ChildText("body")
+
+		// Remove javascripts and styles in page text
+		e.ForEach("script", func(_ int, elem *colly.HTMLElement) {
+			text = strings.Replace(text, elem.Text, " ", 1)  
+		})
+		e.ForEach("style", func(_ int, elem *colly.HTMLElement) {
+			text = strings.Replace(text, elem.Text, " ", 1)  
+		})
+
+		// Preprocess page text
+		content := tokenizer.Tokenize(text)
 
 		processedTitle := tokenizer.Tokenize(title)
 
