@@ -1,63 +1,150 @@
-Page 1 Test
-https://apartemen.win/comp4321/page1.html
-Sat, 30 Mar 2019 14:18:08 UTC, 1386 B
-forward 1, chang 1, stori 4, untru 1, mine 1, life 1, fiction 2, describ 2, found 1, activ 1, artist 2, third 1, person 5, choos 1, born 1, vivid 1, webpag 1, narr 4, tell 3, cours 1, writer 1, licens 1, rememb 1, exampl 1, etc 2, write 5, teacher 2, straight 1, allow 1, page 2, includ 1, object 1, experi 1, easiest 1, try 2, unit 1, detail 1, actual 1, sequenc 1, factual 1, assign 1, paragraph 4, happen 2, freedom 2, account 1, us 1, student 1, littl 1, prefer 1, view 1, style 3, refer 1, pure 1, word 1, foreign 1, time 1, arriv 1, unfold 1, event 1, resembl 1, 
+Department of Computer Science and Engineering - HKUST
+https://www.cse.ust.hk
+Sun, 31 Mar 2019 21:02:24 CST, 14235 B
+receiv 2, model 2, softwar 3, panoram 3, undergradu 6, facil 2, graduat 2, transform 2, engag 2, follow 2, nowcast 2, public 3, link 2, find 5, realiti 2, joint 2, code 3, analysi 3, approxim 2, meet 2, student 2, platform 3, program 2, optim 2, new 7, mission 2, predict 5, dr 2, facebook 4, lei 2, inellig 1, human 2, map 2, seeker 2, cse 6, simpler 2, privaci 2, wechat 2, tackl 2, smart 4, citi 2, profil 1, peopl 4, spotlight 1, set 2, mxnet 2, apcsc 2, pinpoint 3, quick 2, project 2, novemb 4, nov 3, alumni 6, admiss 2, copyright 2, award 2, direct 1, talk 2, blockchain 2, googl 2, cut 1, edg 1, analyt 2, intranet 1, engin 7, learn 14, announc 2, activ 2, share 2, process 2, youtub 2, event 4, futur 4, previou 1, februari 1, exclus 2, crowdsourc 2, view 3, updat 1, practic 2, prof 2, precipit 2, understand 3, librari 1, xunlei 2, launch 4, laboratori 2, consortium 1, toggl 1, school 2, research 18, deep 2, machin 8, seminar 2, network 2, video 1, lab 2, pg 2, step 2, augment 3, ceo 2, qifeng 2, destin 2, women 2, ahead 1, dive 2, cognit 2, coda 3, mood 2, staff 4, china 2, remedi 2, class 2, via 2, enrich 2, qualiti 2, placement 2, locat 4, cre 2, devic 2, sitemap 2, academ 3, life 1, faculti 8, contact 4, apr 2, reason 2, right 2, tooltip 2, open 2, decemb 2, us 2, real 2, tempor 2, applic 2, queri 2, job 5, comput 3, workshop 6, privileg 2, interact 2, reserv 2, fake 2, dec 2, technolog 4, collabor 1, depart 2, assur 2, scienc 3, visual 2, vulner 2, test 3, modul 2, vision 3, octob 1, spatiotempor 3, sens 2, music 2, instagram 2, univers 3, fast 2, april 1, spatial 2, facilit 3, toward 3, creat 2, data 7, medicin 2, oct 2, recruit 2, march 3, xiao 2, robot 2, fri 3, industri 1, hong 4, world 2, employ 2, welcom 2, zhang 2, amazon 2, secur 2, chen 4, kong 4, center 2, qian 2, forum 7, congreg 2, postgradu 8, linkedin 2, function 1, hkust 15, realm 2, live 2, index 2, 
 Children:
-https://apartemen.win/comp4321/page3.html
-https://apartemen.win/comp4321/page2.html
+https://www.cse.ust.hk/alumni/
+https://www.cse.ust.hk/admin/people/staff/
+https://www.cse.ust.hk/admin/people/alumni/
+https://www.cse.ust.hk/BDI/news/news_20190307.html
+https://www.ust.hk/
+https://www.scmp.com/presented/business/topics/hkust-25th-anniversary/article/1884178/creating-predictive-future-big-data
+https://www.seng.ust.hk/web/eng/news_detail.php?id=1119
+https://www.cse.ust.hk/ug/admissions/
+https://www.cse.ust.hk/admin/factsheet/
+https://www.chinadailyhk.com/articles/14/65/28/1541125674562.html?newsId=52460
+https://library.ust.hk/
+https://www.cse.ust.hk/pg/research/projects/gchan/lst/
+https://www.cse.ust.hk/pg/research/labs/
+https://www.cse.ust.hk/admin/recruitment/
+https://www.ust.hk/news
+https://www.cse.ust.hk/News/events.html
+http://epublish.ust.hk/cgi-bin/eng/story.php?id=96&catid=97&keycode=88b7aae0ae45ddb0e6e000ee2682721a&token=17b43a00aeb0f8f8f08df16ae664909f
+https://www.cse.ust.hk/admin/welcome/
+https://www.cse.ust.hk/admin/about/
+https://www.cse.ust.hk/pg/research/projects/dyyeung/ml-hko/
+https://www.cse.ust.hk/News/GoogleResearchAward2018/
+https://www.cse.ust.hk/Restricted/
+https://www.techinasia.com/weseer-smarter-censorship-china
+https://www.cse.ust.hk/admin/mission/
+https://www.cse.ust.hk/pg/research/projects/dyyeung/ml-ed/
+https://www.ab.ust.hk/hro/PubDoc/careers/main.html?btn1=btn_nav_06&main=welcome.html
+https://www.cse.ust.hk/admin/facilities/
+https://www.cse.ust.hk/pg/research/projects/mxj/hri/
+https://www.cse.ust.hk/pg/research/projects/kaichen/coda/
+https://www.cse.ust.hk/admin/contact/
+https://www.cse.ust.hk/ug/
+https://www.cse.ust.hk/ug/enrichment/
+https://www.cse.ust.hk/event/RTF2018/
+https://www.instagram.com/hkust/
+https://www.ust.hk/lifehkust
+https://www.cse.ust.hk/pg/research/projects/horner/mmm/
+https://facultyprofiles.ust.hk/
+https://www.cse.ust.hk/admin/people/pg/
+https://www.cse.ust.hk/admin/qa/
+https://www.cse.ust.hk/News/
+https://www.cse.ust.hk/pg/research/projects/
+https://www.ust.hk/map-directions
+https://pgnews.ust.hk/feb-2017-feature-stories-part-2
+https://www.seng.ust.hk/
+https://www.cse.ust.hk/pg/ourgraduates/
+https://www.cse.ust.hk/admin/people/faculty/
+https://www.ust.hk/academics/list
+https://www.cse.ust.hk/event/CAW2019/
+https://www.cse.ust.hk/pg/admissions/
+https://www.cse.ust.hk/pg/admissions/recruiting/
+https://www.cse.ust.hk/ug/internship/forEmployer/
+https://www.youtube.com/channel/UC1Gky4HCpEOK5EmoUj6zhGg
+https://www.ust.hk/privacy-policy
+https://www.cse.ust.hk/pg/research/projects/scc/castle/
+https://www.cse.ust.hk/pg/research/projects/yike/aqp/
+https://www.facebook.com/hkust/
+https://www.seng.ust.hk/web/eng/news_detail.php?id=942
+https://www.cse.ust.hk/pg/research/projects/charlesz/pinpoint/
+https://www.cse.ust.hk/pg/research/projects/lzhang/aipano/
+https://www.cse.ust.hk/admin/intranet/
+https://www.seng.ust.hk/web/eng/events_detail.php?id=325
+https://www.cse.ust.hk/admin/sitemap/
+https://www.cse.ust.hk/pg/
+https://www.ust.hk/about-hkust
+https://www.cse.ust.hk/pg/research/projects/qianzh/sds/
+https://www.cse.ust.hk/admin/search/
+https://www.techinasia.com/weseer-smarter-censorship-china
+https://www.cse.ust.hk/pg/research/projects/leichen/stc/
+https://www.cse.ust.hk/pg/research/areas/
+http://epublish.ust.hk/cgi-bin/eng/story.php?id=96&catid=97&keycode=88b7aae0ae45ddb0e6e000ee2682721a&token=17b43a00aeb0f8f8f08df16ae664909f
+https://www.cse.ust.hk/
 ------------------------------------------------------------------------
-A Simple HTML Document
-https://apartemen.win/comp4321/page3.html
-Sat, 30 Mar 2019 14:18:08 UTC, 92 B
-simpl 1, html 1, document 1, paragraph 1, 
+Site Search | HKUST CSE
+https://www.cse.ust.hk/admin/search/
+Sun, 31 Mar 2019 21:02:25 CST, 8302 B
+youtub 2, profil 1, quick 1, undergradu 5, reserv 2, facebook 2, graduat 2, updat 1, hong 2, job 4, faculti 4, intranet 1, employ 1, recruit 2, map 1, engin 2, seeker 1, qualiti 2, assur 2, open 2, comput 2, welcom 2, sitemap 2, hkust 4, academ 3, life 1, librari 1, school 2, admiss 2, postgradu 7, placement 2, kong 2, new 3, link 1, vision 2, fast 2, search 1, follow 2, center 2, scienc 2, linkedin 2, depart 1, lab 2, project 2, site 1, instagram 2, pg 2, privaci 2, staff 3, alumni 3, cse 2, event 2, facil 2, mission 2, right 2, direct 1, research 8, technolog 2, univers 3, contact 4, peopl 2, enrich 2, copyright 2, 
 Children:
+https://www.cse.ust.hk/Restricted/
+https://www.cse.ust.hk/
+https://www.cse.ust.hk/pg/research/projects/
+https://www.ust.hk/privacy-policy
+https://www.cse.ust.hk/pg/
+https://www.youtube.com/channel/UC1Gky4HCpEOK5EmoUj6zhGg
+https://www.seng.ust.hk/
+https://www.cse.ust.hk/ug/internship/forEmployer/
+https://www.cse.ust.hk/admin/people/alumni/
+https://www.cse.ust.hk/admin/people/faculty/
+https://www.cse.ust.hk/pg/admissions/recruiting/
+https://www.ust.hk/academics/list
+https://www.ust.hk/lifehkust
+https://www.ab.ust.hk/hro/PubDoc/careers/main.html?btn1=btn_nav_06&main=welcome.html
+https://www.cse.ust.hk/admin/factsheet/
+https://www.cse.ust.hk/admin/recruitment/
+https://www.cse.ust.hk/admin/contact/
+https://www.cse.ust.hk/pg/ourgraduates/
+https://www.ust.hk/
+https://www.cse.ust.hk/pg/research/labs/
+https://www.cse.ust.hk/admin/search/
+https://library.ust.hk/
+https://www.cse.ust.hk/admin/about/
+https://www.cse.ust.hk/admin/people/staff/
+https://www.cse.ust.hk/admin/welcome/
+https://www.facebook.com/hkust/
+https://www.cse.ust.hk/pg/research/areas/
+https://www.cse.ust.hk/admin/people/pg/
+https://www.cse.ust.hk/admin/intranet/
+https://www.instagram.com/hkust/
+https://www.cse.ust.hk/admin/sitemap/
+https://www.cse.ust.hk/News/
+https://facultyprofiles.ust.hk/
+https://www.cse.ust.hk/admin/mission/
+https://www.cse.ust.hk/alumni/
+https://www.cse.ust.hk/ug/
+https://www.cse.ust.hk/admin/facilities/
+https://www.cse.ust.hk/ug/admissions/
+https://www.cse.ust.hk/pg/admissions/
+https://www.cse.ust.hk/admin/qa/
+https://www.cse.ust.hk/ug/enrichment/
+https://www.ust.hk/map-directions
+https://www.ust.hk/about-hkust
+https://www.ust.hk/news
 ------------------------------------------------------------------------
-Your Title Here
-https://apartemen.win/comp4321/page2.html
-Sat, 30 Mar 2019 14:18:08 UTC, 343 B
-paragraph 3, sentenc 1, link 2, page 1, mail 1, site 1, email 1, protect 1, bold 1, googl 1, nifti 1, header 2, ital 1, medium 1, send 1, break 1, 
+Faculty Profiles | The Hong Kong University of Science and Technology
+https://facultyprofiles.ust.hk/
+Sun, 31 Mar 2019 21:02:25 CST, 5389 B
+ust 2, copyright 2, right 2, date 1, window 4, onload 4, map 1, faculti 1, languagepath 1, borderimag 1, correctli 1, color 1, hk 2, hide 1, institut 2, browser 3, librari 1, profil 1, plugin 1, life 1, research 2, kong 2, page 2, call 1, lowerthan 1, academ 1, depart 1, visibl 2, job 1, offic 2, listen 1, addloadev 2, function 6, event 1, view 1, readi 3, func 3, oldonload 3, oir 2, reserv 2, websit 1, content 2, hkust 5, polici 1, document 1, hong 2, updat 2, css 1, dom 2, var 1, typeof 1, els 1, new 1, follow 1, spin 1, technolog 2, bgcolor 1, ffffff 1, univers 3, scienc 2, load 1, outdatedbrows 1, direct 1, privaci 1, 
 Children:
-https://apartemen.win/comp4321/page4.html
-http://google.com
-https://apartemen.win/cdn-cgi/l/email-protection
+https://www.ust.hk/map-directions
+https://www.ust.hk/privacy-policy/
+https://www.ust.hk/about-hkust
+https://www.ust.hk/lifehkust
+https://www.ust.hk/news
+https://www.youtube.com/hkust
+https://www.facebook.com/hkust
+https://facultyprofiles.ust.hk/facultylisting.php
+https://www.ab.ust.hk/hro/PubDoc/careers/main.html?btn1=btn_nav_06&main=welcome.html
+http://library.ust.hk/
+https://www.ust.hk/academics/list
+https://www.instagram.com/hkust/
+http://www.ust.hk
 ------------------------------------------------------------------------
-Google
-http://www.google.com/
-Sun, 31 Mar 2019 16:38:14 CST, 8042 B
-plai 1, youtub 1, gmail 1, googl 3, english 1, com 1, hk 1, 
-Children:
-http://www.google.com/setprefdomain?prefdom=HK&prev=http://www.google.com.hk/&sig=K_YOkMHYsy9qKBGpL8oZyF5hk25H8%3D
-http://www.youtube.com/?gl=HK&tab=w1
-http://www.google.com/language_tools?hl=zh-HK&authuser=0
-http://www.google.com/setprefs?sig=0_WyE_AH3Znj_I2vJR9VmdNSa6R8k%3D&hl=en&source=homepage&sa=X&ved=0ahUKEwjggqia_avhAhWFd94KHXjABdYQ2ZgBCAY
-http://news.google.com.hk/nwshp?hl=zh-TW&tab=wn
-http://www.google.com/intl/zh-TW/policies/terms/
-http://www.google.com/advanced_search?hl=zh-HK&authuser=0
-http://www.google.com/setprefs?sig=0_WyE_AH3Znj_I2vJR9VmdNSa6R8k%3D&hl=zh-CN&source=homepage&sa=X&ved=0ahUKEwjggqia_avhAhWFd94KHXjABdYQ2ZgBCAU
-https://www.google.com.hk/intl/zh-TW/about/products?tab=wh
-http://www.google.com/preferences?hl=zh-TW
-https://play.google.com/?hl=zh-TW&tab=w8
-http://www.google.com/intl/zh-TW/about.html
-http://maps.google.com.hk/maps?hl=zh-TW&tab=wl
-http://www.google.com.hk/history/optout?hl=zh-TW
-https://drive.google.com/?tab=wo
-http://www.google.com.hk/imghp?hl=zh-TW&tab=wi
-http://www.google.com/intl/zh-TW/ads/
-https://accounts.google.com/ServiceLogin?hl=zh-TW&passive=true&continue=http://www.google.com/
-https://mail.google.com/mail/?tab=wm
-http://www.google.com/intl/zh-TW/policies/privacy/
-------------------------------------------------------------------------
-Email Protection | Cloudflare
-https://apartemen.win/cdn-cgi/l/email-protection
-Sun, 31 Mar 2019 16:38:15 CST, 1168 B
-protect 4, sign 2, spammer 1, id 1, cf 1, page 2, mail 1, websit 3, similar 1, perform 1, cooki 1, win 1, hidden 1, javascript 1, apartemen 1, cloudflar 6, cd 1, secur 1, translat 1, pleas 1, unabl 1, address 4, malici 1, rai 1, window 1, enabl 2, email 4, access 2, bot 1, browser 1, decod 1, ip 1, 
-Children:
-https://www.cloudflare.com/5xx-error-landing?utm_source=error_footer
-https://support.cloudflare.com/hc/en-us/articles/200170016-What-is-Email-Address-Obfuscation-
-https://www.cloudflare.com/sign-up?utm_source=email_protection
-https://support.cloudflare.com/hc/en-us/categories/200275218-Getting-Started
-------------------------------------------------------------------------
-Page 4 is Awesome
-https://apartemen.win/comp4321/page4.html
-Sat, 30 Mar 2019 14:18:06 UTC, 1092 B
-html 1, embassi 1, stood 1, hunger 1, tenor 1, fear 1, huntress 1, fur 1, finger 1, passion 1, herd 1, take 1, link 1, citi 2, roof 1, dark 1, dome 1, moon 1, slam 1, eav 1, frame 1, morn 2, pinkish 1, instead 1, peopl 1, head 1, molt 1, grip 1, stench 1, edg 
+Feb 2017-Feature Stories Part 2 | PG Newsletter
+https://pgnews.ust.hk/feb-2017-feature-stories-part-2
+Sun, 31 Mar 2019 12:21:16 UTC, 30039 B
+reserv 2, lab 35, recent 3, respons 5, determin 1, intern 5, basic 2, mini 1, strongli 3, complet 3, enhanc 3, liaison 2, cost 2, consum 2, giant 2, aim 2, blend 2, find 2, largest 1, php 2, phd 14, impair 7, individu 4, challeng 2, right 2, encodeuricompon 6, guid 2, wearabl 2, found 4, date 2, document 1, skip 1, develop 10, citi 2, asia 4, smart 4, user 2, www 2, player 2, encompass 2, qualiti 2, putonghua 2, incub 2, emot 2, tool 2, algorithm 2, link 6, futur 11, solv 2, exposur 3, cooper 2, patent 2, displai 2, cloud 6, focus 3, formerli 2, interview 2, lh 4, ngo 2, http 5, gain 8, widen 2, elect 1, mailto 2, am 2, devis 2, instantli 2, hard 2, walk 2, graduat 3, switzerland 3, cantones 2, greec 2, feedback 3, peer 2, realm 2, strong 5, extend 3, philosophi 3, participatori 2, step 2, finish 3, skill 7, doc 3, symlab 8, platform 2, produc 5, privaci 2, citat 1, fluent 2, postgradu 2, tweet 1, content 1, highli 2, respect 3, analyst 3, activ 6, benefit 2, hiker 2, dialog 4, true 1, telekom 10, hail 2, home 4, sea 2, encourag 5, post 3, maintain 2, return 9, telecommun 5, speed 2, success 4, sens 2, devic 12, meanwhil 2, publish 1, advic 2, airport 2, bermejo 4, start 9, assign 3, becom 2, articl 1, function 6, height 4, media 4, regular 2, hurdl 2, prev 1, afford 2, sourc 1, deutsch 8, help 16, scenic 2, task 2, framework 2, strength 2, major 2, href 8, busi 8, meant 2, beauti 2, ptc 2, dai 4, shop 4, leader 5, facebook 3, spain 4, lee 4, optim 3, role 2, center 2, acm 1, ar 12, gestur 5, assist 4, blind 2, width 4, attr 1, hkust 30, chang 2, hardwar 2, signific 5, cloudridar 2, head 3, train 2, hk 1, team 21, mobil 10, theme 2, gener 4, augment 9, trivial 2, local 2, coastal 2, talk 2, twitter 3, time 12, cut 2, keen 10, appli 4, countrysid 2, entrepreneur 2, carri 2, softwar 2, download 2, boss 2, sole 2, previous 6, own 10, approach 4, machin 2, ensur 5, freedom 2, copyright 2, joint 2, product 4, hand 5, whom 3, particip 3, offer 7, oversea 5, expertis 3, addit 4, east 4, applic 2, oper 2, relev 6, straightforward 2, brought 2, practic 5, studi 15, spur 2, background 3, journal 1, window 11, weibo 3, pan 4, includ 6, learn 7, career 2, look 6, relat 2, subject 2, wow 2, visual 9, feel 2, current 2, arriv 2, program 2, logist 2, undergradu 3, realiti 4, microsoft 2, file 2, beng 3, seen 1, pg 3, live 3, comput 16, appear 2, prof 25, field 2, adapt 2, turkei 2, leav 2, interviewe 2, laboratori 6, track 2, cycl 2, mainland 4, url 3, innov 9, experi 3, professor 5, happi 2, collect 2, rapidli 4, photo 2, industri 12, epfl 3, identifi 8, readi 3, overcom 2, don 1, confer 1, servic 1, peopl 11, sit 2, leadership 3, campu 2, speak 2, sharearticl 1, german 4, visit 6, cross 2, perform 4, project 8, germani 5, besid 3, regard 2, count 3, pathwai 3, poland 2, shape 1, scope 5, option 2, intent 1, care 2, univers 19, multicultur 2, outreach 2, path 2, set 9, common 2,

@@ -28,8 +28,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	// rootPage := "https://www.cse.ust.hk"
-	rootPage := "https://apartemen.win/comp4321/page1.html"
+	rootPage := "https://www.cse.ust.hk"
+	// rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -114,7 +114,7 @@ func main() {
 	defer childParentDocumentForwardIndexer.Release()
 
 	pages := make([]pageMap, 0)
-	maxDepth := 3
+	maxDepth := 2
 	crawler := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
 		// colly.Debugger(&debug.LogDebugger{}),

@@ -62,7 +62,13 @@ func main() {
 
 	output := ""
 
+	i := 0
+
 	for _, page := range pages {
+
+		if i>=30 {
+			break
+		}
 
 		output += page.GetTitle()
 		output += "\n"
@@ -101,7 +107,9 @@ func main() {
 		defer file.Close()
 
 		w := bufio.NewWriter(file)
-    	_, err = w.WriteString(output)
+		_, err = w.WriteString(output)
+		
+		i++
 	}
 
 }
