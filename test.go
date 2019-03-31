@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	Indexer "github.com/hskrishandi/comp4321/indexer"
+	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 	"fmt"
 	"os"
 	"strconv"
