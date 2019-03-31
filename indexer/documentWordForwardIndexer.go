@@ -19,6 +19,14 @@ type WordFrequency struct {
 	frequency uint64
 }
 
+func (w *WordFrequency) GetID() uint64 {
+	return w.wordID
+}
+
+func (w *WordFrequency) GetFrequency() uint64 {
+	return w.frequency
+}
+
 func CreateWordFrequency(id uint64, f uint64) WordFrequency {
 	return WordFrequency{id, f}
 }

@@ -34,11 +34,24 @@ func main() {
 	defer parentChildDocumentForwardIndexer.Backup()
 	defer parentChildDocumentForwardIndexer.Release()
 
+	reverseDocumentIndexer := &Indexer.ReverseMappingIndexer{}
+	reverseDocumentIndexerErr := reverseDocumentIndexer.Initialize(wd + "/db/reverseDocumentIndexer")
+	if reverseDocumentIndexerErr != nil {
+		fmt.Printf("error when initializing reverse document indexer: %s\n", reverseDocumentIndexerErr)
+	}
+	defer reverseDocumentIndexer.Backup()
+	defer reverseDocumentIndexer.Release()
 
-	// parentChildDocumentForwardIndexer.Iterate()
-	// children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(2)
+	reverseWordindexer := &Indexer.ReverseMappingIndexer{}
+	reverseWordindexerErr := reverseWordindexer.Initialize(wd + "/db/reverseWordIndexer")
+	if reverseWordindexerErr != nil {
+		fmt.Printf("error when initializing reverse word indexer: %s\n", reverseWordindexerErr)
+	}
+	defer reverseWordindexer.Backup()
+	defer reverseWordindexer.Release()
 
-	// fmt.Println(children)
+	reverseDocumentIndexer.Iterate()
+
 
 	pages, err := pagePropertiesIndexer.All()
 
@@ -46,26 +59,37 @@ func main() {
 		fmt.Println(err)
 	}
 
+	fmt.Println()
+
 	for _, page := range pages {
+
+		if(page.GetSize()==0){
+			continue
+		}
+
 		fmt.Println(page.GetTitle())
 		fmt.Println(page.GetUrl())
 		fmt.Println(page.GetDate()+",", page.GetSize(), "B")
 
 		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
 
-		// for _, tf := range termFreq {
-		// 	fmt.Print(documentWordForwardIndexer.wordFrequ)
-		// }
-
 		fmt.Println(termFreq)
+
+		for _, tf := range termFreq {
+			word, _ := reverseWordindexer.GetValueFromKey(tf.GetID())
+			fmt.Print(word, tf.GetFrequency(), ", ")
+		}
+
 		fmt.Println("Children:")
 		
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
+
 		fmt.Println(children)
+
 		for _, child := range children {
 			
-			childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
-			fmt.Println(childPage.GetUrl())
+			childUrl, _ := reverseDocumentIndexer.GetValueFromKey(child)
+			fmt.Println(childUrl)
 		}
 
 		fmt.Println("------------------------------------------------------------------------")
