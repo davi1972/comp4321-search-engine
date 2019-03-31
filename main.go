@@ -4,9 +4,9 @@ import (
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
-	"github.com/hskrishandi/comp4321/concurrentMap"
-	Indexer "github.com/hskrishandi/comp4321/indexer"
-	"github.com/hskrishandi/comp4321/tokenizer"
+	"comp4321/concurrentMap"
+	Indexer "comp4321/indexer"
+	"comp4321/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
@@ -154,87 +154,94 @@ func main() {
 		}
 
 		// Store Document id and properties
-
 		id, err := documentIndexer.GetValueFromKey(url)
 		if err != nil {
 			id, _ = documentIndexer.AddKeyToIndex(url)
 		}
 
-		reverseDocumentIndexer.AddKeyToIndex(id, url)
-		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
+		// Compare DateTime to determine wether we should reindex
+		p, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(id)
+		if !p.GetDate().Equal(dateTime) {
 
-		text := e.ChildText("body")
+			reverseDocumentIndexer.AddKeyToIndex(id, url)
+			pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
 
-		// Remove javascripts and styles in page text
-		e.ForEach("script", func(_ int, elem *colly.HTMLElement) {
-			text = strings.Replace(text, elem.Text, " ", 1)
-		})
-		e.ForEach("style", func(_ int, elem *colly.HTMLElement) {
-			text = strings.Replace(text, elem.Text, " ", 1)
-		})
+			text := e.ChildText("body")
 
-		// Preprocess page text
-		content := tokenizer.Tokenize(text)
+			// Remove javascripts and styles in page text
+			e.ForEach("script", func(_ int, elem *colly.HTMLElement) {
+				text = strings.Replace(text, elem.Text, " ", 1)
+			})
+			e.ForEach("style", func(_ int, elem *colly.HTMLElement) {
+				text = strings.Replace(text, elem.Text, " ", 1)
+			})
 
-		processedTitle := tokenizer.Tokenize(title)
+			// Preprocess page text
+			content := tokenizer.Tokenize(text)
 
-		titleWordList := make(map[uint64]*Indexer.InvertedFile)
-		for i, v := range processedTitle {
-			// Add Word to id index
-			wordID, err := wordIndexer.GetValueFromKey(v)
-			if err != nil {
-				wordID, _ = wordIndexer.AddKeyToIndex(v)
+			processedTitle := tokenizer.Tokenize(title)
+
+			titleWordList := make(map[uint64]*Indexer.InvertedFile)
+			for i, v := range processedTitle {
+				// Add Word to id index
+				wordID, err := wordIndexer.GetValueFromKey(v)
+				if err != nil {
+					wordID, _ = wordIndexer.AddKeyToIndex(v)
+				}
+
+				invFile, contain := titleWordList[wordID]
+				if contain {
+					invFile.AddWordPositions(uint64(i))
+				} else {
+					titleWordList[wordID] = Indexer.CreateInvertedFile(id)
+					titleWordList[wordID].AddWordPositions(uint64(i))
+				}
 			}
 
-			invFile, contain := titleWordList[wordID]
-			if contain {
-				invFile.AddWordPositions(uint64(i))
-			} else {
-				titleWordList[wordID] = Indexer.CreateInvertedFile(id)
-				titleWordList[wordID].AddWordPositions(uint64(i))
-			}
-		}
-
-		for k, v := range titleWordList {
-			titleInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
-		}
-
-		// Check for duplicate words in the document
-		contentWordList := make(map[uint64]*Indexer.InvertedFile)
-		contentWordCounter := make(map[uint64]uint64)
-		for i, v := range content {
-			// Add Word to id index
-			wordID, err := wordIndexer.GetValueFromKey(v)
-			if err != nil {
-				wordID, _ = wordIndexer.AddKeyToIndex(v)
-			}
-			reverseWordindexer.AddKeyToIndex(wordID, v)
-
-			invFile, contain := contentWordList[wordID]
-			if contain {
-				invFile.AddWordPositions(uint64(i))
-			} else {
-				contentWordList[wordID] = Indexer.CreateInvertedFile(id)
-				contentWordList[wordID].AddWordPositions(uint64(i))
-			}
-			if _, contain = contentWordCounter[wordID]; contain {
-				contentWordCounter[wordID]++
-			} else {
-				contentWordCounter[wordID] = 1
+			for k, v := range titleWordList {
+				titleInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
 			}
 
-		}
+			// Check for duplicate words in the document
+			contentWordList := make(map[uint64]*Indexer.InvertedFile)
+			contentWordCounter := make(map[uint64]uint64)
+			for i, v := range content {
+				// Add Word to id index
+				wordID, err := wordIndexer.GetValueFromKey(v)
+				if err != nil {
+					wordID, _ = wordIndexer.AddKeyToIndex(v)
+				}
+				reverseWordindexer.AddKeyToIndex(wordID, v)
 
-		for k, v := range contentWordList {
-			contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
-		}
+				invFile, contain := contentWordList[wordID]
+				if contain {
+					invFile.AddWordPositions(uint64(i))
+				} else {
+					contentWordList[wordID] = Indexer.CreateInvertedFile(id)
+					contentWordList[wordID].AddWordPositions(uint64(i))
+				}
+				if _, contain = contentWordCounter[wordID]; contain {
+					contentWordCounter[wordID]++
+				} else {
+					contentWordCounter[wordID] = 1
+				}
 
-		// Get Unique Number of words in the map
-		wordFrequencySlice := make([]Indexer.WordFrequency, 0)
-		for k, v := range contentWordCounter {
-			wordFrequencySlice = append(wordFrequencySlice, Indexer.CreateWordFrequency(k, v))
+			}
+
+			for k, v := range contentWordList {
+				contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
+			}
+
+			// Get Unique Number of words in the map
+			wordFrequencySlice := make([]Indexer.WordFrequency, 0)
+			for k, v := range contentWordCounter {
+				wordFrequencySlice = append(wordFrequencySlice, Indexer.CreateWordFrequency(k, v))
+			}
+			documentWordForwardIndexer.AddWordFrequencyListToKey(id, wordFrequencySlice)
+
+		} else {
+			fmt.Println("Skipping page: " + url + " as it has not been modified")
 		}
-		documentWordForwardIndexer.AddWordFrequencyListToKey(id, wordFrequencySlice)
 
 		tempMap := pageMap{}
 		tempMap.id = id
@@ -287,25 +294,14 @@ func main() {
 		}
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
-
+	// Iterator to see contents of db
 	// documentIndexer.Iterate()
 	// reverseDocumentIndexer.Iterate()
-	contentInvertedIndexer.Iterate()
+	// contentInvertedIndexer.Iterate()
 	// wordIndexer.Iterate()
 	// reverseWordindexer.Iterate()
 	// pagePropertiesIndexer.Iterate()
 	// documentWordForwardIndexer.Iterate()
 	// parentChildDocumentForwardIndexer.Iterate()
 	// childParentDocumentForwardIndexer.Iterate()
-
-	i, _ := documentIndexer.GetValueFromKey("https://apartemen.win/comp4321/page1.html")
-	l, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(i)
-	wordl := make([]uint64, 0)
-	for _, item := range l {
-		wordl = append(wordl, item.GetWordID())
-	}
-
-	contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(wordl, i)
-	fmt.Println("After Deletion")
-	contentInvertedIndexer.Iterate()
 }

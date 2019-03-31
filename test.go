@@ -1,9 +1,10 @@
 package main
 
 import (
-	Indexer "github.com/hskrishandi/comp4321/indexer"
 	"fmt"
 	"os"
+
+	Indexer "comp4321/indexer"
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 
 	pages, err := pagePropertiesIndexer.All()
 
-	if(err != nil){
+	if err != nil {
 		fmt.Println(err)
 	}
 
@@ -60,13 +61,13 @@ func main() {
 
 	for _, page := range pages {
 
-		if(page.GetSize()==0){
+		if page.GetSize() == 0 {
 			continue
 		}
 
 		fmt.Println(page.GetTitle())
 		fmt.Println(page.GetUrl())
-		fmt.Println(page.GetDate()+",", page.GetSize(), "B")
+		fmt.Println(page.GetDateString()+",", page.GetSize(), "B")
 
 		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
 
@@ -77,11 +78,11 @@ func main() {
 
 		fmt.Println()
 		fmt.Println("Children:")
-		
+
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
 
 		for _, child := range children {
-			
+
 			childUrl, _ := reverseDocumentIndexer.GetValueFromKey(child)
 			fmt.Println(childUrl)
 		}
