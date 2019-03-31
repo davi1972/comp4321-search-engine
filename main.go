@@ -295,7 +295,7 @@ func main() {
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
 	// Iterator to see contents of db
-	// documentIndexer.Iterate()
+	documentIndexer.Iterate()
 	// reverseDocumentIndexer.Iterate()
 	// contentInvertedIndexer.Iterate()
 	// wordIndexer.Iterate()

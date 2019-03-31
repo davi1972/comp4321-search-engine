@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bufio"
+	Indexer "github.com/hskrishandi/comp4321/indexer"
 	"fmt"
 	"os"
-	"bufio"
 	"strconv"
-	Indexer "github.com/hskrishandi/comp4321/indexer"
 )
 
 func main() {
@@ -69,7 +69,7 @@ func main() {
 		if i>=30 {
 			break
 		}
-
+		output += strconv.Itoa(i+1)+"\n"
 		output += page.GetTitle()
 		output += "\n"
 		output += page.GetUrl()
@@ -89,7 +89,7 @@ func main() {
 		output += freqText
 		output += "\n"
 		output += "Children:\n"
-		
+
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
 
 		for _, child := range children {
