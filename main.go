@@ -4,9 +4,9 @@ import (
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
-	"comp4321/concurrentMap"
-	Indexer "comp4321/indexer"
-	"comp4321/tokenizer"
+	"github.com/hskrishandi/comp4321/concurrentMap"
+	Indexer "github.com/hskrishandi/comp4321/indexer"
+	"github.com/hskrishandi/comp4321/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
