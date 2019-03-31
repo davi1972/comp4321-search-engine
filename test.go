@@ -35,40 +35,40 @@ func main() {
 	defer parentChildDocumentForwardIndexer.Release()
 
 
-	parentChildDocumentForwardIndexer.Iterate()
-	children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(2)
+	// parentChildDocumentForwardIndexer.Iterate()
+	// children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(2)
 
-	fmt.Println(children)
+	// fmt.Println(children)
 
-	// pages, err := pagePropertiesIndexer.All()
+	pages, err := pagePropertiesIndexer.All()
 
-	// if(err != nil){
-	// 	fmt.Println(err)
-	// }
+	if(err != nil){
+		fmt.Println(err)
+	}
 
-	// for _, page := range pages {
-	// 	fmt.Println(page.GetTitle())
-	// 	fmt.Println(page.GetUrl())
-	// 	fmt.Println(page.GetDate()+",", page.GetSize(), "B")
+	for _, page := range pages {
+		fmt.Println(page.GetTitle())
+		fmt.Println(page.GetUrl())
+		fmt.Println(page.GetDate()+",", page.GetSize(), "B")
 
-	// 	// freq, err := documentWordForwardIndexer.GetWordFrequencyListFromKey(1)
+		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
 
-	// 	// if(err != nil){
-	// 	// 	fmt.Println(err)
-	// 	// }
+		// for _, tf := range termFreq {
+		// 	fmt.Print(documentWordForwardIndexer.wordFrequ)
+		// }
 
-	// 	// fmt.Println(freq)
-	// 	// fmt.Println("Children:")
+		fmt.Println(termFreq)
+		fmt.Println("Children:")
 		
-	// 	children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
-	// 	fmt.Println(children)
-	// 	for _, child := range children {
+		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
+		fmt.Println(children)
+		for _, child := range children {
 			
-	// 		childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
-	// 		fmt.Println(childPage.GetUrl())
-	// 	}
+			childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
+			fmt.Println(childPage.GetUrl())
+		}
 
-	// 	fmt.Println("------------------------------------------------------------------------")
-	// }
+		fmt.Println("------------------------------------------------------------------------")
+	}
 
 }

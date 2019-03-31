@@ -28,7 +28,7 @@ func wordFrequencyToString(word *WordFrequency) string {
 }
 
 func stringToWordFrequency(str string) WordFrequency {
-	splitString := strings.Split(str, "/page/")
+	splitString := strings.Split(str, " ")
 	id, _ := strconv.Atoi(splitString[0])
 	freq, _ := strconv.Atoi(splitString[1])
 	return WordFrequency{uint64(id), uint64(freq)}
