@@ -1,6 +1,6 @@
 Page 1 Test
 https://apartemen.win/comp4321/page1.html
-Sat, 30 Mar 2019 14:18:08 UTC, ժB
+Sat, 30 Mar 2019 14:18:08 UTC, 1386 B
 forward 1, chang 1, stori 4, untru 1, mine 1, life 1, fiction 2, describ 2, found 1, activ 1, artist 2, third 1, person 5, choos 1, born 1, vivid 1, webpag 1, narr 4, tell 3, cours 1, writer 1, licens 1, rememb 1, exampl 1, etc 2, write 5, teacher 2, straight 1, allow 1, page 2, includ 1, object 1, experi 1, easiest 1, try 2, unit 1, detail 1, actual 1, sequenc 1, factual 1, assign 1, paragraph 4, happen 2, freedom 2, account 1, us 1, student 1, littl 1, prefer 1, view 1, style 3, refer 1, pure 1, word 1, foreign 1, time 1, arriv 1, unfold 1, event 1, resembl 1, 
 Children:
 https://apartemen.win/comp4321/page3.html
@@ -8,13 +8,13 @@ https://apartemen.win/comp4321/page2.html
 ------------------------------------------------------------------------
 A Simple HTML Document
 https://apartemen.win/comp4321/page3.html
-Sat, 30 Mar 2019 14:18:08 UTC, \B
+Sat, 30 Mar 2019 14:18:08 UTC, 92 B
 simpl 1, html 1, document 1, paragraph 1, 
 Children:
 ------------------------------------------------------------------------
 Your Title Here
 https://apartemen.win/comp4321/page2.html
-Sat, 30 Mar 2019 14:18:08 UTC, ŗB
+Sat, 30 Mar 2019 14:18:08 UTC, 343 B
 paragraph 3, sentenc 1, link 2, page 1, mail 1, site 1, email 1, protect 1, bold 1, googl 1, nifti 1, header 2, ital 1, medium 1, send 1, break 1, 
 Children:
 https://apartemen.win/comp4321/page4.html
@@ -23,7 +23,7 @@ https://apartemen.win/cdn-cgi/l/email-protection
 ------------------------------------------------------------------------
 Google
 http://www.google.com/
-Sun, 31 Mar 2019 16:38:14 CST, ὪB
+Sun, 31 Mar 2019 16:38:14 CST, 8042 B
 plai 1, youtub 1, gmail 1, googl 3, english 1, com 1, hk 1, 
 Children:
 http://www.google.com/setprefdomain?prefdom=HK&prev=http://www.google.com.hk/&sig=K_YOkMHYsy9qKBGpL8oZyF5hk25H8%3D
@@ -49,7 +49,7 @@ http://www.google.com/intl/zh-TW/policies/privacy/
 ------------------------------------------------------------------------
 Email Protection | Cloudflare
 https://apartemen.win/cdn-cgi/l/email-protection
-Sun, 31 Mar 2019 16:38:15 CST, ҐB
+Sun, 31 Mar 2019 16:38:15 CST, 1168 B
 protect 4, sign 2, spammer 1, id 1, cf 1, page 2, mail 1, websit 3, similar 1, perform 1, cooki 1, win 1, hidden 1, javascript 1, apartemen 1, cloudflar 6, cd 1, secur 1, translat 1, pleas 1, unabl 1, address 4, malici 1, rai 1, window 1, enabl 2, email 4, access 2, bot 1, browser 1, decod 1, ip 1, 
 Children:
 https://www.cloudflare.com/5xx-error-landing?utm_source=error_footer
@@ -59,5 +59,5 @@ https://support.cloudflare.com/hc/en-us/categories/200275218-Getting-Started
 ------------------------------------------------------------------------
 Page 4 is Awesome
 https://apartemen.win/comp4321/page4.html
-Sat, 30 Mar 2019 14:18:06 UTC, фB
-html 1, embassi 1, stood 1, hunger 1, tenor 1, fear 1, huntress 1, fur 1, finger 1, passion 1, herd 1, take 1, link 1, citi 2, roof 1, dark 1, dome 1, moon 1, slam 1, eav 1, frame 1, morn 2, pinkish 1, instead 1, peopl 1, head 1, molt 1, grip 1, stench 1, edg 1, block 1, kep
+Sat, 30 Mar 2019 14:18:06 UTC, 1092 B
+html 1, embassi 1, stood 1, hunger 1, tenor 1, fear 1, huntress 1, fur 1, finger 1, passion 1, herd 1, take 1, link 1, citi 2, roof 1, dark 1, dome 1, moon 1, slam 1, eav 1, frame 1, morn 2, pinkish 1, instead 1, peopl 1, head 1, molt 1, grip 1, stench 1, edg 

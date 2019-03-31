@@ -3,13 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-<<<<<<< HEAD
 	"bufio"
 	"strconv"
-=======
-
-	Indexer "comp4321/indexer"
->>>>>>> 63afbff9a4548015ec9d6d82e09833f15e311fa5
+	Indexer "github.com/hskrishandi/comp4321/indexer"
 )
 
 func main() {
@@ -68,14 +64,11 @@ func main() {
 
 	for _, page := range pages {
 
-		if page.GetSize() == 0 {
-			continue
-		}
 		output += page.GetTitle()
 		output += "\n"
 		output += page.GetUrl()
 		output += "\n"
-		output += page.GetDate() + ", " + string(page.GetSize()) + "B"
+		output += page.GetDateString() + ", " + strconv.Itoa(page.GetSize()) + " B"
 		output += "\n"
 
 		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
