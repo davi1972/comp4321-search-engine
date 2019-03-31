@@ -2,11 +2,7 @@
 
 This program is made to complete COMP 4321 Project requirements to make a working search engine consisted of a spider to fetch pages recursively and indexer to extract keywords from a page.
 
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
-## Quick Start
+## Installation
 
 Install Go
 ```bash
@@ -25,19 +21,23 @@ Download all the dependencies
 ```bash
 $ go get -u github.com/gocolly/colly/...
 $ go get -u github.com/reiver/go-porterstemmer/...
+$ go get github.com/dgraph-io/badger/...
 ```
 
-Running the program
+## Quick Start
+
+Run the program:
 ```bash
 $ go run main.go
 ```
 
-Printing out result
+Print out result
 ```bash
 $ go run test.go
 ```
+
 ## Specification
-Written in Go Programming Language
+Written in Go Programming Language using databse BadgerDB
 
 ## People
 This program is made by David Sun and Hans Krishandi
