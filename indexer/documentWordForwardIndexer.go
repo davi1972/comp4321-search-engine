@@ -42,6 +42,10 @@ func stringToWordFrequency(str string) WordFrequency {
 	return WordFrequency{uint64(id), uint64(freq)}
 }
 
+func (w *WordFrequency) GetWordID() uint64 {
+	return w.wordID
+}
+
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) Initialize(path string) error {
 	if err := os.MkdirAll(path, 0774); err != nil {
 		return err
@@ -77,7 +81,7 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) AddWordFrequencyLi
 	var valueString string
 	if len(wordFrequencyList) > 0 {
 		valueString = wordFrequencyToString(&wordFrequencyList[0])
-		for _, word := range wordFrequencyList {
+		for _, word := range wordFrequencyList[1:] {
 			valueString = valueString + "," + wordFrequencyToString(&word)
 		}
 	}

@@ -199,7 +199,7 @@ func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWordListAn
 			item, err := txn.Get(uint64ToByte(word))
 			if err == badger.ErrKeyNotFound {
 				return err
-			} else if err != nil {
+			} else if err == nil {
 				err = item.Value(func(val []byte) error {
 					resultString := string(val)
 					resultList := strings.Split(resultString, ",")
@@ -207,6 +207,8 @@ func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWordListAn
 					for _, v := range resultList {
 						invertedFileListString = append(invertedFileListString, strings.Split(v, " "))
 					}
+					fmt.Println("Going to Delete:: ")
+					fmt.Println(resultString)
 					fmt.Println(invertedFileListString)
 					return nil
 				})

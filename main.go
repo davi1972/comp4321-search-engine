@@ -257,6 +257,7 @@ func main() {
 				if err != nil {
 					childID, _ = documentIndexer.AddKeyToIndex(url)
 				}
+				reverseDocumentIndexer.AddKeyToIndex(childID, url)
 				if _, ok := tempMap.children.Get(childID); !ok {
 					tempMap.children.Set(childID, nil)
 				}
@@ -287,19 +288,23 @@ func main() {
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
 
-	documentIndexer.Iterate()
-	reverseDocumentIndexer.Iterate()
+	// documentIndexer.Iterate()
+	// reverseDocumentIndexer.Iterate()
 	contentInvertedIndexer.Iterate()
-	wordIndexer.Iterate()
-	reverseWordindexer.Iterate()
-	pagePropertiesIndexer.Iterate()
-	documentWordForwardIndexer.Iterate()
-	parentChildDocumentForwardIndexer.Iterate()
-	childParentDocumentForwardIndexer.Iterate()
+	// wordIndexer.Iterate()
+	// reverseWordindexer.Iterate()
+	// pagePropertiesIndexer.Iterate()
+	// documentWordForwardIndexer.Iterate()
+	// parentChildDocumentForwardIndexer.Iterate()
+	// childParentDocumentForwardIndexer.Iterate()
 
-	// i, _ := documentIndexer.GetValueFromKey("https://apartemen.win/comp4321/page1.html")
-	// l, _ := documentWordForwardIndexer.GetIdListFromKey(i)
+	i, _ := documentIndexer.GetValueFromKey("https://apartemen.win/comp4321/page1.html")
+	l, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(i)
+	wordl := make([]uint64, 0)
+	for _, item := range l {
+		wordl = append(wordl, item.GetWordID())
+	}
 
-	// err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(l, i)
-	// fmt.Println(err)
+	err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(wordl, i)
+	fmt.Println(err)
 }
