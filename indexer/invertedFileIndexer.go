@@ -31,11 +31,20 @@ func (invertedFile *InvertedFile) Same(compared *InvertedFile) bool {
 	if invertedFile.pageID != compared.pageID {
 		return false
 	}
-	for i, val := range invertedFile.wordPositions {
-		if val != compared.wordPositions[i] {
-			return false
+	if len(invertedFile.wordPositions) < len(compared.wordPositions) {
+		for i, val := range invertedFile.wordPositions {
+			if val != compared.wordPositions[i] {
+				return false
+			}
+		}
+	} else {
+		for i, val := range compared.wordPositions {
+			if val != invertedFile.wordPositions[i] {
+				return false
+			}
 		}
 	}
+
 	return true
 }
 

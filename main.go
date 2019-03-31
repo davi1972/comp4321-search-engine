@@ -4,9 +4,9 @@ import (
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
-	"comp4321/concurrentMap"
-	Indexer "comp4321/indexer"
-	"comp4321/tokenizer"
+	"github.com/hskrishandi/comp4321/concurrentMap"
+	Indexer "github.com/hskrishandi/comp4321/indexer"
+	"github.com/hskrishandi/comp4321/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
@@ -28,8 +28,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	// rootPage := "https://www.cse.ust.hk"
-	rootPage := "https://apartemen.win/comp4321/page1.html"
+	rootPage := "https://www.cse.ust.hk"
+	// rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -114,7 +114,7 @@ func main() {
 	defer childParentDocumentForwardIndexer.Release()
 
 	pages := make([]pageMap, 0)
-	maxDepth := 3
+	maxDepth := 2
 	crawler := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
 		// colly.Debugger(&debug.LogDebugger{}),
@@ -295,7 +295,7 @@ func main() {
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
 	// Iterator to see contents of db
-	// documentIndexer.Iterate()
+	documentIndexer.Iterate()
 	// reverseDocumentIndexer.Iterate()
 	// contentInvertedIndexer.Iterate()
 	// wordIndexer.Iterate()

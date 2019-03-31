@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bufio"
+	Indexer "github.com/hskrishandi/comp4321/indexer"
 	"fmt"
 	"os"
-
-	Indexer "comp4321/indexer"
+	"strconv"
 )
 
 func main() {
@@ -59,35 +60,56 @@ func main() {
 
 	fmt.Println()
 
+	output := ""
+
+	i := 0
+
 	for _, page := range pages {
 
-		if page.GetSize() == 0 {
-			continue
+		if i>=30 {
+			break
 		}
-
-		fmt.Println(page.GetTitle())
-		fmt.Println(page.GetUrl())
-		fmt.Println(page.GetDateString()+",", page.GetSize(), "B")
+		output += strconv.Itoa(i+1)+"\n"
+		output += page.GetTitle()
+		output += "\n"
+		output += page.GetUrl()
+		output += "\n"
+		output += page.GetDateString() + ", " + strconv.Itoa(page.GetSize()) + " B"
+		output += "\n"
 
 		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
 
+		freqText := ""
+
 		for _, tf := range termFreq {
 			word, _ := reverseWordindexer.GetValueFromKey(tf.GetID())
-			fmt.Print(word, " ", tf.GetFrequency(), ", ")
+			freqText += word + " " + strconv.FormatUint(tf.GetFrequency(), 10) + ", "
 		}
 
-		fmt.Println()
-		fmt.Println("Children:")
+		output += freqText
+		output += "\n"
+		output += "Children:\n"
 
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
 
 		for _, child := range children {
 
 			childUrl, _ := reverseDocumentIndexer.GetValueFromKey(child)
-			fmt.Println(childUrl)
+			output += childUrl
+			output += "\n"
 		}
+		output += "------------------------------------------------------------------------\n"
 
-		fmt.Println("------------------------------------------------------------------------")
+		file, err := os.Create("spider_result.txt")
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
+		w := bufio.NewWriter(file)
+		_, err = w.WriteString(output)
+		
+		i++
 	}
 
 }
