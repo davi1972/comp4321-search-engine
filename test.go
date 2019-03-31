@@ -34,35 +34,41 @@ func main() {
 	defer parentChildDocumentForwardIndexer.Backup()
 	defer parentChildDocumentForwardIndexer.Release()
 
-	pages, err := pagePropertiesIndexer.All()
 
-	if(err != nil){
-		fmt.Println(err)
-	}
+	parentChildDocumentForwardIndexer.Iterate()
+	children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(2)
 
-	for _, page := range pages {
-		fmt.Println(page.GetTitle())
-		fmt.Println(page.GetUrl())
-		fmt.Println(page.GetDate()+",", page.GetSize(), "B")
+	fmt.Println(children)
 
-		// wordIds, err := documentWordForwardIndexer.GetIdListFromKey(page.GetId())
+	// pages, err := pagePropertiesIndexer.All()
 
-		// if(err != nil){
-		// 	fmt.Println(err)
-		// }
+	// if(err != nil){
+	// 	fmt.Println(err)
+	// }
 
-		fmt.Println()
-		fmt.Println("Children:")
+	// for _, page := range pages {
+	// 	fmt.Println(page.GetTitle())
+	// 	fmt.Println(page.GetUrl())
+	// 	fmt.Println(page.GetDate()+",", page.GetSize(), "B")
+
+	// 	// freq, err := documentWordForwardIndexer.GetWordFrequencyListFromKey(1)
+
+	// 	// if(err != nil){
+	// 	// 	fmt.Println(err)
+	// 	// }
+
+	// 	// fmt.Println(freq)
+	// 	// fmt.Println("Children:")
 		
-		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
-		fmt.Println(children)
-		for _, child := range children {
+	// 	children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
+	// 	fmt.Println(children)
+	// 	for _, child := range children {
 			
-			childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
-			fmt.Println(childPage.GetUrl())
-		}
+	// 		childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
+	// 		fmt.Println(childPage.GetUrl())
+	// 	}
 
-		fmt.Println("------------------------------------------------------------------------")
-	}
+	// 	fmt.Println("------------------------------------------------------------------------")
+	// }
 
 }
