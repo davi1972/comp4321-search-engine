@@ -305,6 +305,7 @@ func main() {
 		wordl = append(wordl, item.GetWordID())
 	}
 
-	err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(wordl, i)
-	fmt.Println(err)
+	contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(wordl, i)
+	fmt.Println("After Deletion")
+	contentInvertedIndexer.Iterate()
 }

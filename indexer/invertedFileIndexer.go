@@ -208,26 +208,36 @@ func (invertedFileIndexer *InvertedFileIndexer) DeleteAllInvertedFileFromKey(wor
 func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWordListAndPage(wordIDList []uint64, pageID uint64) error {
 	// pageString := uint64ToByte(pageID)
 	var err error
-	fmt.Println("in delete")
+	var invertedFileListString string
 	for _, word := range wordIDList {
-		fmt.Printf("Using Word: %d \n", word)
 		err = invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
 			item, err := txn.Get(uint64ToByte(word))
 			if err == badger.ErrKeyNotFound {
 				return err
 			} else if err == nil {
 				err = item.Value(func(val []byte) error {
+					// Create New list which does not contain the deleted page
 					resultString := string(val)
 					resultList := strings.Split(resultString, ",")
-					invertedFileListString := make([][]string, 0)
+					invertedFileListString = ""
 					for _, v := range resultList {
-						invertedFileListString = append(invertedFileListString, strings.Split(v, " "))
+						invFile := strings.Split(v, " ")
+						invFileID, _ := strconv.Atoi(invFile[0])
+						if uint64(invFileID) != pageID {
+							if invertedFileListString == "" {
+								invertedFileListString = v
+							} else {
+								invertedFileListString = invertedFileListString + "," + v
+							}
+						}
 					}
-					fmt.Println("Going to Delete:: ")
-					fmt.Println(resultString)
-					fmt.Println(invertedFileListString)
 					return nil
 				})
+				err = txn.Delete(uint64ToByte(word))
+			}
+			// After Deleting, if there are still other pages for that word add them back
+			if invertedFileListString != "" {
+				err = txn.Set(uint64ToByte(word), []byte(invertedFileListString))
 			}
 
 			return err
