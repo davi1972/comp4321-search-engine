@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bufio"
+	Indexer "comp4321/indexer"
 	"fmt"
 	"os"
-	"bufio"
 	"strconv"
-	Indexer "github.com/hskrishandi/comp4321/indexer"
 )
 
 func main() {
@@ -83,7 +83,7 @@ func main() {
 		output += freqText
 		output += "\n"
 		output += "Children:\n"
-		
+
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
 
 		for _, child := range children {
@@ -101,7 +101,7 @@ func main() {
 		defer file.Close()
 
 		w := bufio.NewWriter(file)
-    	_, err = w.WriteString(output)
+		_, err = w.WriteString(output)
 	}
 
 }

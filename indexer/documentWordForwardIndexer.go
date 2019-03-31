@@ -101,9 +101,13 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetWordFrequencyLi
 		item, err := txn.Get(uint64ToByte(documentId))
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
-				resultList := strings.Split(string(val), ",")
-				for _, v := range resultList {
-					result = append(result, stringToWordFrequency(v))
+				if string(val) != "" {
+
+					resultList := strings.Split(string(val), ",")
+					for _, v := range resultList {
+						result = append(result, stringToWordFrequency(v))
+					}
+					return nil
 				}
 				return nil
 			})
