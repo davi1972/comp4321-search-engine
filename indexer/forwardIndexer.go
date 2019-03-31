@@ -71,6 +71,9 @@ func (forwardIndexer *ForwardIndexer) GetIdListFromKey(documentId uint64) ([]uin
 		item, err := txn.Get(uint64ToByte(documentId))
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
+				if string(val) == "" {
+					return nil
+				}
 				resultList := strings.Split(string(val), " ")
 				for _, v := range resultList {
 					val, _ := strconv.Atoi(v)
