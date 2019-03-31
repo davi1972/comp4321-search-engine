@@ -1,11 +1,15 @@
 package main
 
 import (
-	Indexer "github.com/hskrishandi/comp4321/indexer"
 	"fmt"
 	"os"
+<<<<<<< HEAD
 	"bufio"
 	"strconv"
+=======
+
+	Indexer "comp4321/indexer"
+>>>>>>> 63afbff9a4548015ec9d6d82e09833f15e311fa5
 )
 
 func main() {
@@ -54,7 +58,7 @@ func main() {
 
 	pages, err := pagePropertiesIndexer.All()
 
-	if(err != nil){
+	if err != nil {
 		fmt.Println(err)
 	}
 
@@ -64,7 +68,7 @@ func main() {
 
 	for _, page := range pages {
 
-		if(page.GetSize()==0){
+		if page.GetSize() == 0 {
 			continue
 		}
 		output += page.GetTitle()
@@ -73,9 +77,6 @@ func main() {
 		output += "\n"
 		output += page.GetDate() + ", " + string(page.GetSize()) + "B"
 		output += "\n"
-		// fmt.Println(page.GetTitle())
-		// fmt.Println(page.GetUrl())
-		// fmt.Println(page.GetDate()+",", page.GetSize(), "B")
 
 		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
 
@@ -84,27 +85,21 @@ func main() {
 		for _, tf := range termFreq {
 			word, _ := reverseWordindexer.GetValueFromKey(tf.GetID())
 			freqText += word + " " + strconv.FormatUint(tf.GetFrequency(), 10) + ", "
-
-			// fmt.Print(word, " ", tf.GetFrequency(), ", ")
 		}
 
 		output += freqText
 		output += "\n"
 		output += "Children:\n"
-
-		// fmt.Println("Children:")
 		
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
 
 		for _, child := range children {
-			
+
 			childUrl, _ := reverseDocumentIndexer.GetValueFromKey(child)
 			output += childUrl
 			output += "\n"
-			// fmt.Println(childUrl)
 		}
 		output += "------------------------------------------------------------------------\n"
-		// fmt.Println("------------------------------------------------------------------------")
 
 		file, err := os.Create("spider_result.txt")
 		if err != nil {

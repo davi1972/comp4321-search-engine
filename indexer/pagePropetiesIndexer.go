@@ -39,8 +39,12 @@ func (page *Page) GetSize() int {
 	return page.size
 }
 
-func (page *Page) GetDate() string {
+func (page *Page) GetDateString() string {
 	return page.dateModified.Format(time.RFC1123)
+}
+
+func (page *Page) GetDate() time.Time {
+	return page.dateModified
 }
 
 func CreatePage(id uint64, title string, url string, size int, date time.Time) Page {
