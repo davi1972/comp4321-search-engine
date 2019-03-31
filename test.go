@@ -50,9 +50,6 @@ func main() {
 	defer reverseWordindexer.Backup()
 	defer reverseWordindexer.Release()
 
-	reverseDocumentIndexer.Iterate()
-
-
 	pages, err := pagePropertiesIndexer.All()
 
 	if(err != nil){
@@ -73,18 +70,15 @@ func main() {
 
 		termFreq, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(page.GetId())
 
-		fmt.Println(termFreq)
-
 		for _, tf := range termFreq {
 			word, _ := reverseWordindexer.GetValueFromKey(tf.GetID())
-			fmt.Print(word, tf.GetFrequency(), ", ")
+			fmt.Print(word, " ", tf.GetFrequency(), ", ")
 		}
 
+		fmt.Println()
 		fmt.Println("Children:")
 		
 		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
-
-		fmt.Println(children)
 
 		for _, child := range children {
 			
