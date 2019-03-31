@@ -1,6 +1,6 @@
 package concurrentMap
 
-import(
+import (
 	"sync"
 )
 
@@ -9,22 +9,22 @@ import(
 // PageMap
 type ConcurrentMap struct {
 	sync.RWMutex
-	items map[string]interface{}
+	items map[uint64]interface{}
 }
 
 // Concurrent map item
 type ConcurrentMapItem struct {
-	Key   string
+	Key   uint64
 	Value interface{}
 }
 
 func (cm *ConcurrentMap) Init() *ConcurrentMap {
-	cm.items = make(map[string]interface{})
+	cm.items = make(map[uint64]interface{})
 	return cm
 }
 
 // Sets a key in a concurrent map
-func (cm *ConcurrentMap) Set(key string, value interface{}) {
+func (cm *ConcurrentMap) Set(key uint64, value interface{}) {
 	cm.Lock()
 	defer cm.Unlock()
 
@@ -32,13 +32,13 @@ func (cm *ConcurrentMap) Set(key string, value interface{}) {
 }
 
 // Gets a key from a concurrent map
-func (cm *ConcurrentMap) Get(key string) (interface{}) {
+func (cm *ConcurrentMap) Get(key uint64) (interface{}, bool) {
 	cm.Lock()
 	defer cm.Unlock()
 
-	value, _ := cm.items[key]
+	value, contains := cm.items[key]
 
-	return value
+	return value, contains
 }
 
 // Iterates over the items in a concurrent map
@@ -59,4 +59,14 @@ func (cm *ConcurrentMap) Iter() <-chan ConcurrentMapItem {
 	go f()
 
 	return c
+}
+
+// Converts concurrent map into a slice of its keys
+func (cm *ConcurrentMap) ConvertToSliceOfKeys() []uint64 {
+
+	result := make([]uint64, 0, len(cm.items))
+	for k := range cm.items {
+		result = append(result, k)
+	}
+	return result
 }

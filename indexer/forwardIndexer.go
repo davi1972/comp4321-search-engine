@@ -45,22 +45,18 @@ func (forwardIndexer *ForwardIndexer) Backup() error {
 	return err
 }
 
-func (forwardIndexer *ForwardIndexer) AddWordIdListToKey(documentId uint64, wordIdList []uint64) error {
+func (forwardIndexer *ForwardIndexer) AddIdListToKey(documentId uint64, idList []uint64) error {
 	var valueString string
-	if len(wordIdList) > 1 {
-		valueString = strconv.FormatUint(wordIdList[0], 10)
-
-		for _, v := range wordIdList[1:] {
-			valueString = valueString + " " + strconv.FormatUint(v, 10)
+	if len(idList) > 0 {
+		valueString = strconv.FormatUint(idList[0], 10)
+		if len(idList) > 1 {
+			for _, v := range idList[1:] {
+				valueString = valueString + " " + strconv.FormatUint(v, 10)
+			}
 		}
-
 	}
 	err := forwardIndexer.db.Update(func(txn *badger.Txn) error {
-		_, err := txn.Get(uint64ToByte(documentId))
-		if err == badger.ErrKeyNotFound {
-			err = txn.Set(uint64ToByte(documentId), []byte(valueString))
-			return err
-		}
+		err := txn.Set(uint64ToByte(documentId), []byte(valueString))
 		return err
 	})
 	if err != nil {
@@ -69,12 +65,15 @@ func (forwardIndexer *ForwardIndexer) AddWordIdListToKey(documentId uint64, word
 	return err
 }
 
-func (forwardIndexer *ForwardIndexer) GetWordIdListFromKey(documentId uint64) ([]uint64, error) {
+func (forwardIndexer *ForwardIndexer) GetIdListFromKey(documentId uint64) ([]uint64, error) {
 	result := make([]uint64, 0)
 	err := forwardIndexer.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(uint64ToByte(documentId))
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
+				if string(val) == "" {
+					return nil
+				}
 				resultList := strings.Split(string(val), " ")
 				for _, v := range resultList {
 					val, _ := strconv.Atoi(v)

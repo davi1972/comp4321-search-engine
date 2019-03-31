@@ -23,6 +23,30 @@ type Page struct {
 	dateModified time.Time
 }
 
+func (page *Page) GetId() uint64 {
+	return page.id
+}
+
+func (page *Page) GetTitle() string {
+	return page.title
+}
+
+func (page *Page) GetUrl() string {
+	return page.url
+}
+
+func (page *Page) GetSize() int {
+	return page.size
+}
+
+func (page *Page) GetDateString() string {
+	return page.dateModified.Format(time.RFC1123)
+}
+
+func (page *Page) GetDate() time.Time {
+	return page.dateModified
+}
+
 func CreatePage(id uint64, title string, url string, size int, date time.Time) Page {
 	page := Page{}
 	page.id = id
@@ -34,7 +58,7 @@ func CreatePage(id uint64, title string, url string, size int, date time.Time) P
 }
 
 func pageToString(page *Page) string {
-	return string(uint64ToByte(page.id)) + "/page/" + page.title + "/page/" + page.url + "/page/" + strconv.FormatInt(int64(page.size), 10) + "/page/" + page.dateModified.Format(time.RFC3339)
+	return strconv.Itoa(int(page.id)) + "/page/" + page.title + "/page/" + page.url + "/page/" + strconv.FormatInt(int64(page.size), 10) + "/page/" + page.dateModified.Format(time.RFC3339)
 }
 
 func stringToPage(str string) Page {
@@ -60,6 +84,36 @@ func (pagePropetiesIndexer *PagePropetiesIndexer) Initialize(path string) error 
 	pagePropetiesIndexer.db = db
 	pagePropetiesIndexer.databasePath = path
 	return err
+}
+
+func (pagePropetiesIndexer *PagePropetiesIndexer) All() ([]Page, error) {
+
+	pages := []Page{}
+
+	err := pagePropetiesIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			var p Page
+			item := it.Item()
+			// k := item.Key()
+			err := item.Value(func(v []byte) error {
+				p = stringToPage(string(v))
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+
+			pages = append(pages, p)
+
+		}
+		return nil
+	})
+
+	return pages, err
 }
 
 func (pagePropetiesIndexer *PagePropetiesIndexer) Iterate() error {
