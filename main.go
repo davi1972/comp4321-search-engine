@@ -42,9 +42,9 @@ func main() {
 	defer documentIndexer.Release()
 
 	reverseDocumentIndexer := &Indexer.ReverseMappingIndexer{}
-	reverseDocumentIndexerErr := reverseDocumentIndexer.Initialize(wd + "/db/reverseWordIndexer")
+	reverseDocumentIndexerErr := reverseDocumentIndexer.Initialize(wd + "/db/reverseDocumentIndexer")
 	if reverseDocumentIndexerErr != nil {
-		fmt.Printf("error when initializing reverse document indexer: %s\n", wordErr)
+		fmt.Printf("error when initializing reverse document indexer: %s\n", reverseDocumentIndexerErr)
 	}
 	defer reverseDocumentIndexer.Backup()
 	defer reverseDocumentIndexer.Release()
@@ -60,7 +60,7 @@ func main() {
 	reverseWordindexer := &Indexer.ReverseMappingIndexer{}
 	reverseWordindexerErr := reverseWordindexer.Initialize(wd + "/db/reverseWordIndexer")
 	if reverseWordindexerErr != nil {
-		fmt.Printf("error when initializing reverse word indexer: %s\n", wordErr)
+		fmt.Printf("error when initializing reverse word indexer: %s\n", reverseWordindexerErr)
 	}
 	defer reverseWordindexer.Backup()
 	defer reverseWordindexer.Release()
