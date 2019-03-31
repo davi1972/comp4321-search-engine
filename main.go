@@ -243,8 +243,9 @@ func main() {
 				}
 
 				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
-
-				pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
+				if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
+					pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
+				}
 
 				e.Request.Visit(url)
 			}(url)
