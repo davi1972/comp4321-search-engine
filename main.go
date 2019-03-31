@@ -41,6 +41,14 @@ func main() {
 	defer documentIndexer.Backup()
 	defer documentIndexer.Release()
 
+	reverseDocumentIndexer := &Indexer.ReverseMappingIndexer{}
+	reverseDocumentIndexerErr := reverseDocumentIndexer.Initialize(wd + "/db/reverseWordIndexer")
+	if reverseDocumentIndexerErr != nil {
+		fmt.Printf("error when initializing reverse document indexer: %s\n", wordErr)
+	}
+	defer reverseDocumentIndexer.Backup()
+	defer reverseDocumentIndexer.Release()
+
 	wordIndexer := &Indexer.MappingIndexer{}
 	wordErr := wordIndexer.Initialize(wd + "/db/wordIndex")
 	if wordErr != nil {
@@ -151,6 +159,8 @@ func main() {
 		if err != nil {
 			id, _ = documentIndexer.AddKeyToIndex(url)
 		}
+
+		reverseDocumentIndexer.AddKeyToIndex(id, url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
 
 		text := e.ChildText("body")
@@ -251,11 +261,6 @@ func main() {
 					tempMap.children.Set(childID, nil)
 				}
 
-				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
-				if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
-					pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
-				}
-
 				e.Request.Visit(url)
 			}(url)
 		}
@@ -283,6 +288,7 @@ func main() {
 	}
 
 	documentIndexer.Iterate()
+	reverseDocumentIndexer.Iterate()
 	contentInvertedIndexer.Iterate()
 	wordIndexer.Iterate()
 	reverseWordindexer.Iterate()
