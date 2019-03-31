@@ -27,6 +27,18 @@ func (invertedFile *InvertedFile) AddWordPositions(pos uint64) {
 	invertedFile.wordPositions = append(invertedFile.wordPositions, pos)
 }
 
+func (invertedFile *InvertedFile) Same(compared *InvertedFile) bool {
+	if invertedFile.pageID != compared.pageID {
+		return false
+	}
+	for i, val := range invertedFile.wordPositions {
+		if val != compared.wordPositions[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func (invertedFileIndexer *InvertedFileIndexer) Initialize(path string) error {
 	if err := os.MkdirAll(path, 0774); err != nil {
 		return err
@@ -110,11 +122,15 @@ func (invertedFileIndexer *InvertedFileIndexer) AddKeyToIndexOrUpdate(wordID uin
 		// If key already exists, have to append/insert
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
-				// First convert to inverted file slice
+				// First convert to inverted file slice, while also checking if there are duplicates
 				invertedFileListString := strings.Split(string(val), ",")
 				invertedFileList := make([]InvertedFile, len(invertedFileListString))
 				for i, v := range invertedFileListString {
 					invertedFileList[i] = stringToInvertedFile(v)
+					if invertedFileList[i].Same(&invertedFile) {
+						invertedFileList[i] = invertedFile
+						return nil
+					}
 				}
 
 				// Special case if the inverted file is the largest
