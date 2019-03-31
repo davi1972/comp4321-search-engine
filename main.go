@@ -41,6 +41,14 @@ func main() {
 	defer documentIndexer.Backup()
 	defer documentIndexer.Release()
 
+	reverseDocumentIndexer := &Indexer.ReverseMappingIndexer{}
+	reverseDocumentIndexerErr := reverseDocumentIndexer.Initialize(wd + "/db/reverseDocumentIndexer")
+	if reverseDocumentIndexerErr != nil {
+		fmt.Printf("error when initializing reverse document indexer: %s\n", reverseDocumentIndexerErr)
+	}
+	defer reverseDocumentIndexer.Backup()
+	defer reverseDocumentIndexer.Release()
+
 	wordIndexer := &Indexer.MappingIndexer{}
 	wordErr := wordIndexer.Initialize(wd + "/db/wordIndex")
 	if wordErr != nil {
@@ -48,6 +56,14 @@ func main() {
 	}
 	defer wordIndexer.Backup()
 	defer wordIndexer.Release()
+
+	reverseWordindexer := &Indexer.ReverseMappingIndexer{}
+	reverseWordindexerErr := reverseWordindexer.Initialize(wd + "/db/reverseWordIndexer")
+	if reverseWordindexerErr != nil {
+		fmt.Printf("error when initializing reverse word indexer: %s\n", reverseWordindexerErr)
+	}
+	defer reverseWordindexer.Backup()
+	defer reverseWordindexer.Release()
 
 	pagePropertiesIndexer := &Indexer.PagePropetiesIndexer{}
 	pagePropertiesErr := pagePropertiesIndexer.Initialize(wd + "/db/pagePropertiesIndex")
@@ -143,6 +159,8 @@ func main() {
 		if err != nil {
 			id, _ = documentIndexer.AddKeyToIndex(url)
 		}
+
+		reverseDocumentIndexer.AddKeyToIndex(id, url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
 
 		text := e.ChildText("body")
@@ -190,6 +208,7 @@ func main() {
 			if err != nil {
 				wordID, _ = wordIndexer.AddKeyToIndex(v)
 			}
+			reverseWordindexer.AddKeyToIndex(wordID, v)
 
 			invFile, contain := contentWordList[wordID]
 			if contain {
@@ -223,8 +242,6 @@ func main() {
 		tempMap.children.Init()
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
-		fmt.Println("Links for page: " + url)
-		fmt.Println(links)
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
 			wg.Add(1)
@@ -242,11 +259,6 @@ func main() {
 				}
 				if _, ok := tempMap.children.Get(childID); !ok {
 					tempMap.children.Set(childID, nil)
-				}
-
-				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
-				if _, err := pagePropertiesIndexer.GetPagePropertiesFromKey(childID); err != nil {
-					pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
 				}
 
 				e.Request.Visit(url)
@@ -276,8 +288,10 @@ func main() {
 	}
 
 	documentIndexer.Iterate()
+	reverseDocumentIndexer.Iterate()
 	contentInvertedIndexer.Iterate()
 	wordIndexer.Iterate()
+	reverseWordindexer.Iterate()
 	pagePropertiesIndexer.Iterate()
 	documentWordForwardIndexer.Iterate()
 	parentChildDocumentForwardIndexer.Iterate()
@@ -288,5 +302,4 @@ func main() {
 
 	// err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(l, i)
 	// fmt.Println(err)
-	parentChildDocumentForwardIndexer.GetIdListFromKey(1)
 }
