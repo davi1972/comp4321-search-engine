@@ -18,7 +18,6 @@ func main() {
 	defer pagePropertiesIndexer.Backup()
 	defer pagePropertiesIndexer.Release()
 
-
 	documentWordForwardIndexer := &Indexer.ForwardIndexer{}
 	documentWordForwardIndexerErr := documentWordForwardIndexer.Initialize(wd + "/db/documentWordForwardIndex")
 	if documentWordForwardIndexerErr != nil {
@@ -26,6 +25,14 @@ func main() {
 	}
 	defer documentWordForwardIndexer.Backup()
 	defer documentWordForwardIndexer.Release()
+
+	parentChildDocumentForwardIndexer := &Indexer.ForwardIndexer{}
+	parentChildDocumentForwardIndexerErr := parentChildDocumentForwardIndexer.Initialize(wd + "/db/parentChildDocumentForwardIndex")
+	if parentChildDocumentForwardIndexerErr != nil {
+		fmt.Printf("error when initializing parentDocument -> childDocument forward Indexer: %s\n", parentChildDocumentForwardIndexerErr)
+	}
+	defer parentChildDocumentForwardIndexer.Backup()
+	defer parentChildDocumentForwardIndexer.Release()
 
 	pages, err := pagePropertiesIndexer.All()
 
@@ -38,7 +45,22 @@ func main() {
 		fmt.Println(page.GetUrl())
 		fmt.Println(page.GetDate()+",", page.GetSize(), "B")
 
+		// wordIds, err := documentWordForwardIndexer.GetIdListFromKey(page.GetId())
+
+		// if(err != nil){
+		// 	fmt.Println(err)
+		// }
+
+		fmt.Println()
+		fmt.Println("Children:")
 		
+		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(page.GetId())
+		fmt.Println(children)
+		for _, child := range children {
+			
+			childPage, _ := pagePropertiesIndexer.GetPagePropertiesFromKey(child)
+			fmt.Println(childPage.GetUrl())
+		}
 
 		fmt.Println("------------------------------------------------------------------------")
 	}

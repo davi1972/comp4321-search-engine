@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gocolly/colly"
+
 	//"github.com/gocolly/colly/debug"
 	"github.com/hskrishandi/comp4321/concurrentMap"
 	Indexer "github.com/hskrishandi/comp4321/indexer"
@@ -15,7 +16,7 @@ import (
 	"strings"
 )
 
-type page struct {
+type pageMap struct {
 	id       uint64
 	children concurrentMap.ConcurrentMap
 	parent   concurrentMap.ConcurrentMap
@@ -96,10 +97,10 @@ func main() {
 	defer childParentDocumentForwardIndexer.Backup()
 	defer childParentDocumentForwardIndexer.Release()
 
-	pages := []page{}
-
+	pages := make([]pageMap, 0)
+	maxDepth := 3
 	crawler := colly.NewCollector(
-		colly.MaxDepth(3),
+		colly.MaxDepth(maxDepth),
 		// colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 	)
@@ -137,11 +138,11 @@ func main() {
 		}
 
 		// Store Document id and properties
-		_, err := documentIndexer.AddKeyToIndex(url)
+
+		id, err := documentIndexer.GetValueFromKey(url)
 		if err != nil {
-			fmt.Println(err)
+			id, _ = documentIndexer.AddKeyToIndex(url)
 		}
-		id, _ := documentIndexer.GetValueFromKey(url)
 		pagePropertiesIndexer.AddKeyToPageProperties(id, Indexer.CreatePage(id, title, url, size, dateTime))
 
 		text := e.ChildText("body")
@@ -156,8 +157,6 @@ func main() {
 
 		// Preprocess page text
 		content := tokenizer.Tokenize(text)
-
-		fmt.Println(content)
 
 		processedTitle := tokenizer.Tokenize(title)
 
@@ -209,17 +208,14 @@ func main() {
 		for k := range contentWordList {
 			wordUIntList = append(wordUIntList, k)
 		}
-		fmt.Println("document -> word")
-		fmt.Println(wordUIntList)
 		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
 
-		temp := page{}
-		temp.children = concurrentMap.ConcurrentMap{}
-		temp.children.Init()
-
+		tempMap := pageMap{}
+		tempMap.id = id
+		tempMap.children = concurrentMap.ConcurrentMap{}
+		tempMap.children.Init()
 		// temp.date_modified = e.Response.Headers.Get("Last-Modified")
 		links := e.ChildAttrs("a[href]", "href")
-
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
 			wg.Add(1)
@@ -230,23 +226,22 @@ func main() {
 					return
 				}
 				defer resp.Body.Close()
-				childID, _ := documentIndexer.GetValueFromKey(url)
 
-				if _, contained := temp.children.Get(childID); !contained {
-					temp.children.Set(childID, nil)
+				childID, err := documentIndexer.GetValueFromKey(url)
+				if err != nil {
+					childID, _ = documentIndexer.AddKeyToIndex(url)
+				}
+				if _, ok := tempMap.children.Get(childID); !ok {
+					tempMap.children.Set(childID, nil)
 				}
 
 				e.Request.Visit(url)
 			}(url)
 		}
 		wg.Wait()
-		pages = append(pages, temp)
-		childUIntList := temp.children.ConvertToSliceOfKeys()
-		fmt.Println(childUIntList)
-		err = parentChildDocumentForwardIndexer.AddIdListToKey(id, childUIntList)
+		pages = append(pages, tempMap)
+		parentChildDocumentForwardIndexer.AddIdListToKey(id, tempMap.children.ConvertToSliceOfKeys())
 	})
-
-	// After finished, iterate of
 
 	crawler.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
@@ -255,10 +250,20 @@ func main() {
 	crawler.Visit(rootPage)
 
 	crawler.Wait()
+	// After finished, iterate over all pages to get child->parent relation
+	for _, page := range pages {
+		page.parent.Init()
+		for _, v := range pages {
+			if _, contains := v.children.Get(page.id); contains {
+				page.parent.Set(v.id, nil)
+			}
+		}
+		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
+	}
 
+	documentIndexer.Iterate()
 	contentInvertedIndexer.Iterate()
 	wordIndexer.Iterate()
-	documentIndexer.Iterate()
 	pagePropertiesIndexer.Iterate()
 	documentWordForwardIndexer.Iterate()
 	parentChildDocumentForwardIndexer.Iterate()

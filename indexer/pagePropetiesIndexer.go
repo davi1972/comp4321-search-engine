@@ -23,6 +23,10 @@ type Page struct {
 	dateModified time.Time
 }
 
+func (page *Page) GetId() uint64 {
+	return page.id
+}
+
 func (page *Page) GetTitle() string {
 	return page.title
 }
@@ -50,7 +54,7 @@ func CreatePage(id uint64, title string, url string, size int, date time.Time) P
 }
 
 func pageToString(page *Page) string {
-	return string(uint64ToByte(page.id)) + "/page/" + page.title + "/page/" + page.url + "/page/" + strconv.FormatInt(int64(page.size), 10) + "/page/" + page.dateModified.Format(time.RFC3339)
+	return strconv.Itoa(int(page.id)) + "/page/" + page.title + "/page/" + page.url + "/page/" + strconv.FormatInt(int64(page.size), 10) + "/page/" + page.dateModified.Format(time.RFC3339)
 }
 
 func stringToPage(str string) Page {
