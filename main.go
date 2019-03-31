@@ -73,7 +73,7 @@ func main() {
 	defer contentInvertedIndexer.Backup()
 	defer contentInvertedIndexer.Release()
 
-	documentWordForwardIndexer := &Indexer.ForwardIndexer{}
+	documentWordForwardIndexer := &Indexer.DocumentWordForwardIndexer{}
 	documentWordForwardIndexerErr := documentWordForwardIndexer.Initialize(wd + "/db/documentWordForwardIndex")
 	if documentWordForwardIndexerErr != nil {
 		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", documentWordForwardIndexerErr)
@@ -183,6 +183,7 @@ func main() {
 
 		// Check for duplicate words in the document
 		contentWordList := make(map[uint64]*Indexer.InvertedFile)
+		contentWordCounter := make(map[uint64]uint64)
 		for i, v := range content {
 			// Add Word to id index
 			wordID, err := wordIndexer.GetValueFromKey(v)
@@ -197,18 +198,24 @@ func main() {
 				contentWordList[wordID] = Indexer.CreateInvertedFile(id)
 				contentWordList[wordID].AddWordPositions(uint64(i))
 			}
+			if _, contain = contentWordCounter[wordID]; contain {
+				contentWordCounter[wordID]++
+			} else {
+				contentWordCounter[wordID] = 1
+			}
+
 		}
 
 		for k, v := range contentWordList {
 			contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
 		}
 
-		// Get List word words in this document in slice
-		wordUIntList := make([]uint64, 0, len(contentWordList))
-		for k := range contentWordList {
-			wordUIntList = append(wordUIntList, k)
+		// Get Unique Number of words in the map
+		wordFrequencySlice := make([]Indexer.WordFrequency, 0)
+		for k, v := range contentWordCounter {
+			wordFrequencySlice = append(wordFrequencySlice, Indexer.CreateWordFrequency(k, v))
 		}
-		documentWordForwardIndexer.AddIdListToKey(id, wordUIntList)
+		documentWordForwardIndexer.AddWordFrequencyListToKey(id, wordFrequencySlice)
 
 		tempMap := pageMap{}
 		tempMap.id = id
@@ -234,6 +241,10 @@ func main() {
 				if _, ok := tempMap.children.Get(childID); !ok {
 					tempMap.children.Set(childID, nil)
 				}
+
+				p := Indexer.CreatePage(childID, "", url, 0, time.Now())
+
+				pagePropertiesIndexer.AddKeyToPageProperties(childID, p)
 
 				e.Request.Visit(url)
 			}(url)
@@ -268,4 +279,10 @@ func main() {
 	documentWordForwardIndexer.Iterate()
 	parentChildDocumentForwardIndexer.Iterate()
 	childParentDocumentForwardIndexer.Iterate()
+
+	// i, _ := documentIndexer.GetValueFromKey("https://apartemen.win/comp4321/page1.html")
+	// l, _ := documentWordForwardIndexer.GetIdListFromKey(i)
+
+	// err := contentInvertedIndexer.DeleteInvertedFileFromWordListAndPage(l, i)
+	// fmt.Println(err)
 }

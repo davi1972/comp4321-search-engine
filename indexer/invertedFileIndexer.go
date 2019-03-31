@@ -189,51 +189,31 @@ func (invertedFileIndexer *InvertedFileIndexer) DeleteAllInvertedFileFromKey(wor
 	return err
 }
 
-// func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWordListAndPage(wordIDList []uint64, pageID uint64) error {
-// 	pageString := uint64ToByte(pageID)
-// 	for _, word := range wordIDList {
-// 		err := invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
-// 			item, err := txn.Get(word)
-// 			// If key already exists, have to append/insert
-// 			if err == nil {
-// 				itemErr := item.Value(func(val []byte) error {
-// 					// First convert to inverted file slice
-// 					invertedFileListString := strings.Split(string(val), ",")
-// 					invertedFileList := make([]InvertedFile, len(invertedFileListString))
-// 					for i, v := range invertedFileListString {
-// 						invertedFileList[i] = stringToInvertedFile(v)
-// 					}
+func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWordListAndPage(wordIDList []uint64, pageID uint64) error {
+	// pageString := uint64ToByte(pageID)
+	var err error
+	fmt.Println("in delete")
+	for _, word := range wordIDList {
+		fmt.Printf("Using Word: %d \n", word)
+		err = invertedFileIndexer.db.Update(func(txn *badger.Txn) error {
+			item, err := txn.Get(uint64ToByte(word))
+			if err == badger.ErrKeyNotFound {
+				return err
+			} else if err != nil {
+				err = item.Value(func(val []byte) error {
+					resultString := string(val)
+					resultList := strings.Split(resultString, ",")
+					invertedFileListString := make([][]string, 0)
+					for _, v := range resultList {
+						invertedFileListString = append(invertedFileListString, strings.Split(v, " "))
+					}
+					fmt.Println(invertedFileListString)
+					return nil
+				})
+			}
 
-// 					// Special case if the inverted file is the largest
-// 					if invertedFileList[len(invertedFileList)-1].pageID < invertedFile.pageID {
-// 						invertedFileList = append(invertedFileList, invertedFile)
-// 					} else {
-// 						// Insert to sorted Inverted File String
-// 						for i, v := range invertedFileList {
-// 							if v.pageID < invertedFile.pageID {
-// 								invertedFileList = append(invertedFileList, InvertedFile{})
-// 								copy(invertedFileList[i+1:], invertedFileList[i:])
-// 								invertedFileList[i] = invertedFile
-// 								break
-// 							}
-
-// 						}
-// 					}
-// 					valueString = invertedFileToString(invertedFileList[0])
-// 					for _, v := range invertedFileList[1:] {
-// 						valueString = valueString + "," + invertedFileToString(v)
-// 					}
-// 					return nil
-// 				})
-// 				if itemErr != nil {
-// 					return itemErr
-// 				}
-
-// 				// Delete the old one
-// 				err = txn.Delete(keyString)
-// 			}
-// 			err = txn.Set(keyString, []byte(valueString))
-// 			return err
-// 		})
-// 	}
-// }
+			return err
+		})
+	}
+	return err
+}

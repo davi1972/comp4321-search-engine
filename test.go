@@ -18,7 +18,7 @@ func main() {
 	defer pagePropertiesIndexer.Backup()
 	defer pagePropertiesIndexer.Release()
 
-	documentWordForwardIndexer := &Indexer.ForwardIndexer{}
+	documentWordForwardIndexer := &Indexer.DocumentWordForwardIndexer{}
 	documentWordForwardIndexerErr := documentWordForwardIndexer.Initialize(wd + "/db/documentWordForwardIndex")
 	if documentWordForwardIndexerErr != nil {
 		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", documentWordForwardIndexerErr)
