@@ -136,7 +136,7 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) DeleteKeyValuePair
 }
 
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) Iterate() error {
-	fmt.Println("iterating over Forward Index")
+	fmt.Println("iterating over Document Word Forward Index")
 	err := documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10

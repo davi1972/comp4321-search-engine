@@ -106,7 +106,7 @@ func (forwardIndexer *ForwardIndexer) DeleteKeyValuePair(documentId uint64) erro
 }
 
 func (forwardIndexer *ForwardIndexer) Iterate() error {
-	fmt.Println("iterating over Forward Index")
+	fmt.Println("Iterating over Forward Index")
 	err := forwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10

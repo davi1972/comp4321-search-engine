@@ -4,9 +4,6 @@ import (
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
-	"github.com/davi1972/comp4321-search-engine/concurrentMap"
-	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
-	"github.com/davi1972/comp4321-search-engine/tokenizer"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +11,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/davi1972/comp4321-search-engine/concurrentMap"
+	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	"github.com/davi1972/comp4321-search-engine/tokenizer"
 )
 
 type pageMap struct {
@@ -28,8 +29,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	// rootPage := "https://apartemen.win/comp4321/page1.html"
+	// rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 

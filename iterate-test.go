@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -97,8 +96,8 @@ func main() {
 	fmt.Println("1 - documentIndexer \n2 - reverseDocumentIndexer \n3 - contentInvertedIndexer \n4 - wordIndexer \n5 - reverseWordIndexer \n6 - pagePropertiesIndexer \n7 - documentWordForwardIndexer \n8 - parentChildDocumentForwardIndexer \n9 - childParentDocumentForwardIndexer")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		fmt.Println("Select 1 to 9:")
-		fmt.Println("1 - documentIndexer \n2 - reverseDocumentIndexer \n3 - contentInvertedIndexer \n4 - wordIndexer \n5 - reverseWordIndexer \n6 - pagePropertiesIndexer \n7 - documentWordForwardIndexer \n8 - parentChildDocumentForwardIndexer \n9 - childParentDocumentForwardIndexer")
+		fmt.Println("Select 1 to 10:")
+		fmt.Println("1 - documentIndexer \n2 - reverseDocumentIndexer \n3 - contentInvertedIndexer \n4 - wordIndexer \n5 - reverseWordIndexer \n6 - pagePropertiesIndexer \n7 - documentWordForwardIndexer \n8 - parentChildDocumentForwardIndexer \n9 - childParentDocumentForwardIndexer\n10 - Input Doc ID")
 
 		i, _ := strconv.Atoi(scanner.Text())
 		switch i {
@@ -121,17 +120,25 @@ func main() {
 		case 9:
 			childParentDocumentForwardIndexer.Iterate()
 		}
+
+		if i == 10 {
+			scanner.Scan()
+			id, _ := strconv.ParseUint(scanner.Text(), 10, 64)
+			wflist, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(id)
+
+			for j := range wflist {
+				fmt.Println("key: " + fmt.Sprint(wflist[j].GetID()) + " value: " + fmt.Sprint(wflist[j].GetFrequency()) + " wordID: " + fmt.Sprint(wflist[j].GetWordID()))
+
+			}
+		}
+		// documentIndexer.Iterate()
+		// reverseDocumentIndexer.Iterate()
+		// contentInvertedIndexer.Iterate()
+		// wordIndexer.Iterate()
+		// reverseWordindexer.Iterate()
+		// pagePropertiesIndexer.Iterate()
+		// documentWordForwardIndexer.Iterate()
+		// parentChildDocumentForwardIndexer.Iterate()
+		// childParentDocumentForwardIndexer.Iterate()
 	}
-	if err := scanner.Err(); err != nil {
-		log.Println(err)
-	}
-	// documentIndexer.Iterate()
-	// reverseDocumentIndexer.Iterate()
-	// contentInvertedIndexer.Iterate()
-	// wordIndexer.Iterate()
-	// reverseWordindexer.Iterate()
-	// pagePropertiesIndexer.Iterate()
-	// documentWordForwardIndexer.Iterate()
-	// parentChildDocumentForwardIndexer.Iterate()
-	// childParentDocumentForwardIndexer.Iterate()
 }

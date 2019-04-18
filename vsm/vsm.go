@@ -1,7 +1,10 @@
 package vsm
 
 import (
+	"fmt"
 	"math"
+	"os"
+	"path/filepath"
 
 	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
@@ -9,8 +12,17 @@ import (
 
 // Returns a wordid given a (tokenized) term.
 func StringToWordID(qterm string) uint64 {
-	wordsindex := &Indexer.MappingIndexer{}
-	wordid, _ := wordsindex.GetValueFromKey(qterm)
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error when getting wd: %s\n", err)
+	}
+	parent := filepath.Dir(wd)
+	wordsIndex := &Indexer.MappingIndexer{}
+	wordsErr := wordsIndex.Initialize(parent + "/db/wordIndex")
+	if wordsErr != nil {
+		fmt.Printf("Error when initializing word indexer: %s\n", wordsErr)
+	}
+	wordid, _ := wordsIndex.GetValueFromKey(qterm)
 	return wordid
 }
 
@@ -19,12 +31,25 @@ func InverseDocumentFreq(qterm string) float64 {
 	// log_2(N/df of term)
 	N := 0
 	df := 0
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error when getting wd: %s\n", err)
+	}
+	parent := filepath.Dir(wd)
 
-	pageindex := &Indexer.PagePropetiesIndexer{}
-	pages, _ := pageindex.All()
+	pageIndex := &Indexer.PagePropetiesIndexer{}
+	pageErr := pageIndex.Initialize(parent + "/db/pagePropertiesIndex")
+	if pageErr != nil {
+		fmt.Printf("Error when initializing page properties: %s\n", pageErr)
+	}
+	pages, _ := pageIndex.All()
 
-	invertedIndex := &Indexer.InvertedFileIndexer{}
-	invertedFile, _ := invertedIndex.GetInvertedFileFromKey(StringToWordID(qterm))
+	contentInvertedIndex := &Indexer.InvertedFileIndexer{}
+	contentInvertedErr := contentInvertedIndex.Initialize(parent + "/db/contentInvertedIndex")
+	if contentInvertedErr != nil {
+		fmt.Printf("Error when initializing page properties: %s\n", contentInvertedErr)
+	}
+	invertedFile, _ := contentInvertedIndex.GetInvertedFileFromKey(StringToWordID(qterm))
 
 	N = len(pages)
 	df = len(invertedFile)
@@ -34,10 +59,25 @@ func InverseDocumentFreq(qterm string) float64 {
 // Returns the term frequency of a term in document (ID).
 func TermFreq(qterm string, documentID uint64) uint64 {
 	// frequency of term j in document i
-	docwords := &Indexer.DocumentWordForwardIndexer{}
-	words, _ := docwords.GetWordFrequencyListFromKey(documentID)
-	wordsindex := &Indexer.MappingIndexer{}
-	index, _ := wordsindex.GetValueFromKey(qterm) // word id
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error when getting wd: %s\n", err)
+	}
+	parent := filepath.Dir(wd)
+
+	docWords := &Indexer.DocumentWordForwardIndexer{}
+	docWordsErr := docWords.Initialize(parent + "/db/documentWordForwardIndex")
+	if docWordsErr != nil {
+		fmt.Printf("error when initializing Document -> Word Forward Indexer: %s\n", docWordsErr)
+	}
+	words, _ := docWords.GetWordFrequencyListFromKey(documentID)
+
+	wordsIndex := &Indexer.MappingIndexer{}
+	wordsIndexErr := wordsIndex.Initialize(parent + "/db/wordIndex")
+	if wordsIndexErr != nil {
+		fmt.Printf("Error when initializing word indexer: %s\n", wordsIndexErr)
+	}
+	index, _ := wordsIndex.GetValueFromKey(qterm) // word id
 
 	// iterate through doc's word IDs
 	for i := range words {
@@ -55,8 +95,18 @@ func ComputeTermWeight(qterm string, documentID uint64) float64 {
 
 // Returns the maximum term frequency of a term in a document ID.
 func MaxTermFreq(documentID uint64) uint64 {
-	docwords := &Indexer.DocumentWordForwardIndexer{}
-	words, _ := docwords.GetWordFrequencyListFromKey(documentID)
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error when getting wd: %s\n", err)
+	}
+	parent := filepath.Dir(wd)
+
+	docWords := &Indexer.DocumentWordForwardIndexer{}
+	docWordsErr := docWords.Initialize(parent + "/db/documentWordForwardIndex")
+	if docWordsErr != nil {
+		fmt.Printf("error when initializing Document -> Word Forward Indexer: %s\n", docWordsErr)
+	}
+	words, _ := docWords.GetWordFrequencyListFromKey(documentID)
 	//wordID := stringToWordID(qterm)
 
 	wf := words[0]
