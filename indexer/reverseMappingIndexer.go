@@ -45,12 +45,12 @@ func (reverseMappingIndexer *ReverseMappingIndexer) Backup() error {
 	return err
 }
 
-func (reverseMappingIndexer *ReverseMappingIndexer) AddKeyToIndex(wordID uint64, word string) error {
+func (reverseMappingIndexer *ReverseMappingIndexer) AddKeyToIndex(key uint64, word string) error {
 	err := reverseMappingIndexer.db.Update(func(txn *badger.Txn) error {
-		_, err := txn.Get(uint64ToByte(wordID))
+		_, err := txn.Get(uint64ToByte(key))
 		if err == badger.ErrKeyNotFound {
 			// Get new value for index
-			err = txn.Set(uint64ToByte(wordID), []byte(word))
+			err = txn.Set(uint64ToByte(key), []byte(word))
 			return err
 		}
 		return err
@@ -61,10 +61,10 @@ func (reverseMappingIndexer *ReverseMappingIndexer) AddKeyToIndex(wordID uint64,
 	return err
 }
 
-func (ReverseMappingIndexer *ReverseMappingIndexer) GetValueFromKey(wordID uint64) (string, error) {
+func (ReverseMappingIndexer *ReverseMappingIndexer) GetValueFromKey(key uint64) (string, error) {
 	var result string
 	err := ReverseMappingIndexer.db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get(uint64ToByte(wordID))
+		item, err := txn.Get(uint64ToByte(key))
 		if err == nil {
 			itemErr := item.Value(func(val []byte) error {
 				result = string(val)
@@ -105,9 +105,9 @@ func (ReverseMappingIndexer *ReverseMappingIndexer) Iterate() {
 	})
 }
 
-func (ReverseMappingIndexer *ReverseMappingIndexer) DeleteKeyValuePair(wordID uint64) error {
+func (ReverseMappingIndexer *ReverseMappingIndexer) DeleteKeyValuePair(key uint64) error {
 	err := ReverseMappingIndexer.db.Update(func(txn *badger.Txn) error {
-		err := txn.Delete(uint64ToByte(wordID))
+		err := txn.Delete(uint64ToByte(key))
 		return err
 	})
 	if err != nil {
