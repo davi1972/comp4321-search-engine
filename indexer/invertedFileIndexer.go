@@ -254,3 +254,8 @@ func (invertedFileIndexer *InvertedFileIndexer) DeleteInvertedFileFromWordListAn
 	}
 	return err
 }
+
+func (invertedFileIndexer *InvertedFileIndexer) GetDocFreq(wordID uint64) (uint64, error) {
+	invertedFile, err := invertedFileIndexer.GetInvertedFileFromKey(wordID)
+	return uint64(len(invertedFile)), err
+}
