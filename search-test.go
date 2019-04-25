@@ -9,8 +9,8 @@ import (
 	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 
-	//"github.com/davi1972/comp4321-search-engine/vsm"
-	"./vsm"
+	"github.com/davi1972/comp4321-search-engine/vsm"
+	//"./vsm"
 )
 
 func main() {
