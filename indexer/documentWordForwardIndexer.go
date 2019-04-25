@@ -157,3 +157,20 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) Iterate() error {
 	})
 	return err
 }
+
+// find N = num of docs
+func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetSize() uint64 {
+	fmt.Println("Iterating over Document Word Forward Index to count size")
+	i := 0
+	_ = documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			i++
+		}
+		return nil
+	})
+	return uint64(i)
+}

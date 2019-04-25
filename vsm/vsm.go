@@ -30,6 +30,8 @@ func (vsm *VSM) StringToWordID(qterm string) (uint64, error) {
 // Returns the inverse document frequency of a string.
 func (vsm *VSM) InverseDocumentFreq(qterm string) (float64, error) {
 	N := vsm.DocumentIndexer.GetSize()
+	fmt.Printf("N = %d\n", N)
+
 	wordid, err := vsm.StringToWordID(qterm)
 
 	if err != nil {
@@ -37,6 +39,7 @@ func (vsm *VSM) InverseDocumentFreq(qterm string) (float64, error) {
 	}
 
 	df, err2 := vsm.ContentInvertedIndexer.GetDocFreq(wordid)
+	fmt.Printf("df = %d\n", df)
 
 	if err2 != nil {
 		err2 = fmt.Errorf("Error when getting inverted file from key: %s", err2)
@@ -118,6 +121,7 @@ func (vsm *VSM) CosSimilarity(query string, documentID uint64) float64 {
 	return res
 }
 
+// Returns a float array with scores starting with doc 0 as index
 func (vsm *VSM) ComputeCosineScore(query string) []float64 {
 	scores := make([]float64, 3)
 	lengths := make([]float64, 3)

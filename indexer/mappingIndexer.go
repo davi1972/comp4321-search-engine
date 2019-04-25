@@ -121,20 +121,3 @@ func (mappingIndexer *MappingIndexer) DeleteKeyValuePair(key string) error {
 	}
 	return err
 }
-
-// find N = num of docs
-func (mappingIndexer *MappingIndexer) GetSize() uint64 {
-	fmt.Println("Iterating over Mapping Index to count size")
-	i := 0
-	_ = mappingIndexer.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchSize = 10
-		it := txn.NewIterator(opts)
-		defer it.Close()
-		for it.Rewind(); it.Valid(); it.Next() {
-			i++
-		}
-		return nil
-	})
-	return uint64(i)
-}
