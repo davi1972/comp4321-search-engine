@@ -9,34 +9,34 @@ import (
 )
 
 type VSM struct {
-	documentIndexer                   *Indexer.MappingIndexer
-	wordIndexer                       *Indexer.MappingIndexer
-	reverseDocumentIndexer            *Indexer.ReverseMappingIndexer
-	reverseWordIndexer                *Indexer.ReverseMappingIndexer
-	pagePropertiesIndexer             *Indexer.PagePropetiesIndexer
-	titleInvertedIndexer              *Indexer.InvertedFileIndexer
-	contentInvertedIndexer            *Indexer.InvertedFileIndexer
-	documentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
-	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
-	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
+	DocumentIndexer                   *Indexer.MappingIndexer
+	WordIndexer                       *Indexer.MappingIndexer
+	ReverseDocumentIndexer            *Indexer.ReverseMappingIndexer
+	ReverseWordIndexer                *Indexer.ReverseMappingIndexer
+	PagePropertiesIndexer             *Indexer.PagePropetiesIndexer
+	TitleInvertedIndexer              *Indexer.InvertedFileIndexer
+	ContentInvertedIndexer            *Indexer.InvertedFileIndexer
+	DocumentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
+	ParentChildDocumentForwardIndexer *Indexer.ForwardIndexer
+	ChildParentDocumentForwardIndexer *Indexer.ForwardIndexer
 }
 
 // Returns a wordid given a (tokenized) term.
 func (vsm *VSM) StringToWordID(qterm string) (uint64, error) {
-	wordid, err := vsm.wordIndexer.GetValueFromKey(qterm)
+	wordid, err := vsm.WordIndexer.GetValueFromKey(qterm)
 	return wordid, err
 }
 
 // Returns the inverse document frequency of a string.
 func (vsm *VSM) InverseDocumentFreq(qterm string) (float64, error) {
-	N := vsm.documentIndexer.GetSize()
+	N := vsm.DocumentIndexer.GetSize()
 	wordid, err := vsm.StringToWordID(qterm)
 
 	if err != nil {
 		err = fmt.Errorf("Error when getting value from key: %s", err)
 	}
 
-	df, err2 := vsm.contentInvertedIndexer.GetDocFreq(wordid)
+	df, err2 := vsm.ContentInvertedIndexer.GetDocFreq(wordid)
 
 	if err2 != nil {
 		err2 = fmt.Errorf("Error when getting inverted file from key: %s", err2)
@@ -48,13 +48,13 @@ func (vsm *VSM) InverseDocumentFreq(qterm string) (float64, error) {
 // Returns the term frequency of a term in document (ID).
 func (vsm *VSM) TermFreq(qterm string, documentID uint64) (uint64, error) {
 	// frequency of term j in document i
-	words, err := vsm.documentWordForwardIndexer.GetWordFrequencyListFromKey(documentID)
+	words, err := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(documentID)
 
 	if err != nil {
 		err = fmt.Errorf("Error when getting word frequency list from key: %s", err)
 	}
 
-	index, err2 := vsm.wordIndexer.GetValueFromKey(qterm) // word id
+	index, err2 := vsm.WordIndexer.GetValueFromKey(qterm) // word id
 	if err2 != nil {
 		err2 = fmt.Errorf("Error when getting value from key transaction: %s", err2)
 	}
@@ -78,7 +78,7 @@ func (vsm *VSM) ComputeTermWeight(qterm string, documentID uint64) float64 {
 
 // Returns the maximum term frequency of a term in a document ID.
 func (vsm *VSM) MaxTermFreq(documentID uint64) uint64 {
-	words, _ := vsm.documentWordForwardIndexer.GetWordFrequencyListFromKey(documentID)
+	words, _ := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(documentID)
 
 	wf := words[0]
 	for i := range words[1:] {
@@ -110,6 +110,35 @@ func (vsm *VSM) CosSimilarity(query string, documentID uint64) float64 {
 		sumD += termWeights[terms[i]] * termWeights[terms[i]]
 		sumQ += (float64(queryFreq[terms[i]]) * invDocFreq) * (float64(queryFreq[terms[i]]) * invDocFreq)
 	}
+	var res float64 = innerPro / (math.Sqrt(sumD) * math.Sqrt(sumQ))
 
-	return innerPro / (math.Sqrt(sumD) * math.Sqrt(sumQ))
+	if math.IsNaN(res) {
+		res = 0
+	}
+	return res
+}
+
+func (vsm *VSM) ComputeCosineScore(query string) []float64 {
+	scores := make([]float64, 3)
+	lengths := make([]float64, 3)
+
+	var length float64
+	for i := 0; i < 3; i++ {
+		length = 0
+		docList, err := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(uint64(i))
+		if err != nil {
+			fmt.Errorf("Error getting word frequency list: %s", err)
+			return nil
+		}
+		for j := range docList {
+			length += float64(docList[j].GetFrequency())
+		}
+		lengths[i] = length
+	}
+
+	for c := 0; c < 3; c++ {
+		scores[c] = vsm.CosSimilarity(query, uint64(c))
+		scores[c] = scores[c] / lengths[c]
+	}
+	return scores
 }

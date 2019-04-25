@@ -29,8 +29,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	//rootPage := "https://apartemen.win/comp4321/page1.html"
+	//rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
