@@ -1,15 +1,16 @@
 package Indexer
 
 import (
-	"github.com/dgraph-io/badger"
 	"fmt"
 	"os"
+
+	"github.com/dgraph-io/badger"
 )
 
 // URL -> Page ID Indexer and Word -> Page ID Indexer
 type MappingIndexer struct {
-	db *badger.DB
-	sequence *badger.Sequence
+	db           *badger.DB
+	sequence     *badger.Sequence
 	databasePath string
 }
 
@@ -25,7 +26,7 @@ func (mappingIndexer *MappingIndexer) Initialize(path string) error {
 	if err != nil {
 		return fmt.Errorf("Error while initializing: %s", err)
 	}
-	mappingIndexer.db = db 
+	mappingIndexer.db = db
 	mappingIndexer.sequence, _ = db.GetSequence([]byte("doc-"), 1000)
 	mappingIndexer.databasePath = path
 	return err
@@ -125,18 +126,18 @@ func (mappingIndexer *MappingIndexer) Iterate() {
 		it := txn.NewIterator(opts)
 		defer it.Close()
 		for it.Rewind(); it.Valid(); it.Next() {
-		  item := it.Item()
-		  k := item.Key()
-		  err := item.Value(func(v []byte) error {
-			fmt.Printf("key=%s, value=%d\n", k, byteToUint64(v))
-			return nil
-		  })
-		  if err != nil {
-			return err
-		  }
+			item := it.Item()
+			k := item.Key()
+			err := item.Value(func(v []byte) error {
+				fmt.Printf("key=%s, value=%d\n", k, byteToUint64(v))
+				return nil
+			})
+			if err != nil {
+				return err
+			}
 		}
 		return nil
-	  })
+	})
 }
 
 func (mappingIndexer *MappingIndexer) DeleteKeyValuePair(key string) error {
