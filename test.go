@@ -63,8 +63,10 @@ func main() {
 
 	output := ""
 	count := 0
-	for _, page := range pages[:30] {
+	for _, page := range pages {
 
+		output += strconv.FormatUint(page.GetId(), 10)
+		output += "\n"
 		output += page.GetTitle()
 		output += "\n"
 		output += page.GetUrl()

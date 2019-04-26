@@ -1,0 +1,143 @@
+<html>
+
+<head>
+    <title>Search Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+        integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+</head>
+
+<body>
+    <div id="app">
+        <header id="top-bar" class="d-flex">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="search-bar">
+                            <input class="form-control form-control-lg search-input" type="text">
+                            <span class="search-button">
+                                <button class="btn btn-default">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="nav" style="float:right">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#">History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Keywords List</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Link</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+        </header>
+        <div class="container">
+            <div class="row search-result">
+                <div class="col-md-8">
+                    <div class="card result">
+                        <div class="card-body">
+                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
+                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
+                            <p class="desc">
+                                After the devastating events of Avengers: Infinity War (2018), the universe
+                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
+                            </p>
+                            <p class="date">24 February 2019</p>
+
+                        </div>
+                    </div>
+                    <div class="card result">
+                        <div class="card-body">
+                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
+                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
+                            <p class="desc">
+                                After the devastating events of Avengers: Infinity War (2018), the universe
+                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
+                            </p>
+                            <p class="date">24 February 2019</p>
+
+                        </div>
+                    </div>
+                    <div class="card result">
+                        <div class="card-body">
+                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
+                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
+                            <p class="desc">
+                                After the devastating events of Avengers: Infinity War (2018), the universe
+                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
+                            </p>
+                            <p class="date">24 February 2019</p>
+
+                        </div>
+                    </div>
+                    <div class="card result">
+                        <div class="card-body">
+                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
+                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
+                            <p class="desc">
+                                After the devastating events of Avengers: Infinity War (2018), the universe
+                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
+                            </p>
+                            <p class="date">24 February 2019</p>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <!--graph-->
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+
+        Vue.component('app-user', {
+            data: function () {
+                return {
+                    users: [
+                        { name: 'Max', age: 27 },
+                        { name: 'Chris', age: 30 },
+                        { name: 'Nora', age: 25 },
+                    ]
+                }
+            },
+            template: `
+      <div>
+        <div class="user" v-for="user in users">
+        <p>User: {{user.name}}</p>
+        </div>
+      </div>
+        `
+        });
+
+        new Vue({
+            el: '#app',
+            data: {
+                title: "Hellow",
+                cssClass: '',
+                show: true,
+
+            },
+            methods: {
+                changeTitle() {
+                    this.title = "Changed title";
+                }
+            }
+        })
+    </script>
+    <style>
+
+    </style>
+</body>
+
+</html>

@@ -47,6 +47,35 @@ func (mappingIndexer *MappingIndexer) Backup() error {
 	return err
 }
 
+func (mappingIndexer *MappingIndexer) All() ([]uint64, error) {
+
+	var pageIds []uint64
+
+	err := mappingIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			var p uint64
+			item := it.Item()
+			err := item.Value(func(v []byte) error {
+				p = byteToUint64(v)
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+
+			pageIds = append(pageIds, p)
+
+		}
+		return nil
+	})
+
+	return pageIds, err
+}
+
 func (mappingIndexer *MappingIndexer) AddKeyToIndex(key string) (uint64, error) {
 	var id uint64
 	var err error

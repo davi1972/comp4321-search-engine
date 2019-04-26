@@ -1,0 +1,67 @@
+<html>
+<head>
+    <title>Page 1 Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+      .red {
+        background-color: red;
+      }
+      .blue {
+        background-color: blue;
+      }
+    </style>
+</head>
+<body>
+    <div id="app">
+      <button v-on:click="changeTitle">Change Title</button>
+      <p>{{title}}</p>
+
+      <input type="text" v-on:input="cssClass = $event.target.value">
+      <p v-bind:class="cssClass">Class: {{ cssClass }}</p>
+
+      <button v-on:click="show = !show">Show / Hide</button>
+      <p v-if="show">I'm part-time visible</p>
+      <p v-else>Am I visible?</p>
+      <p v-show="show">Hurray I'm here</p>
+      <hr>
+      <app-user>
+
+    </div>
+    <script>
+    
+    Vue.component('app-user', {
+      data: function() {
+        return {
+          users: [
+            {name: 'Max', age: 27},
+            {name: 'Chris', age: 30},
+            {name: 'Nora', age: 25},
+          ]
+        }
+      },
+      template: `
+      <div>
+        <div class="user" v-for="user in users">
+        <p>User: {{user.name}}</p>
+        </div>
+      </div>
+        `
+    });
+
+    new Vue({
+      el: '#app',
+      data: {
+        title: "Hellow",
+        cssClass: '',
+        show: true,
+        
+      },
+      methods: {
+        changeTitle() {
+          this.title = "Changed title";
+        }
+      }
+    })
+    </script>
+</body>
+</html>

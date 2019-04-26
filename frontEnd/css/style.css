@@ -1,0 +1,64 @@
+body {
+
+}
+
+#top-bar {
+    position: sticky;
+    top: 0;
+    padding-top:20px;
+    padding-bottom:20px;
+    border-bottom: 1px solid #ddd;
+    z-index:900;
+    background-color: #fff;
+}
+
+.search-button {
+    position: absolute;
+    bottom:8px;
+    right:20px;
+}
+
+.search-button i{
+    font-size: 20px;
+}
+
+.search-button button {
+    outline:none;
+}
+
+.search-button .btn {
+    outline:none;
+}
+
+.search-input{
+    border-radius: 30px;
+}
+
+.search-result {
+    padding-top:24px;
+}
+
+.result {
+    margin-bottom:15px;
+}
+
+.result .card-body{
+    padding:15px;
+}
+
+.result p{
+    margin-bottom: 5px;
+}
+
+.result .title {
+    font-size:20px;
+}
+
+.result .url {
+    font-size:12px;
+}
+
+.result .date {
+    font-size:11px;
+    color:gray;
+}
