@@ -5,6 +5,7 @@ import (
 	"math"
 
 	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	//Indexer "../indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 )
 
@@ -83,13 +84,16 @@ func (vsm *VSM) ComputeTermWeight(qterm string, documentID uint64) float64 {
 func (vsm *VSM) MaxTermFreq(documentID uint64) uint64 {
 	words, _ := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(documentID)
 
-	wf := words[0]
-	for i := range words[1:] {
-		if words[i].GetFrequency() > wf.GetFrequency() {
-			wf = words[i]
+	if len(words) > 0 {
+		wf := words[0]
+		for i := range words[1:] {
+			if words[i].GetFrequency() > wf.GetFrequency() {
+				wf = words[i]
+			}
 		}
+		return wf.GetFrequency()
 	}
-	return wf.GetFrequency()
+	return 0
 }
 
 // Returns the cosine similarity between query and document ID.
@@ -113,7 +117,7 @@ func (vsm *VSM) CosSimilarity(query string, documentID uint64) float64 {
 		sumD += termWeights[terms[i]] * termWeights[terms[i]]
 		sumQ += (float64(queryFreq[terms[i]]) * invDocFreq) * (float64(queryFreq[terms[i]]) * invDocFreq)
 	}
-	var res float64 = innerPro / (math.Sqrt(sumD) * math.Sqrt(sumQ))
+	res := innerPro / (math.Sqrt(sumD) * math.Sqrt(sumQ))
 
 	if math.IsNaN(res) {
 		res = 0
@@ -124,19 +128,28 @@ func (vsm *VSM) CosSimilarity(query string, documentID uint64) float64 {
 // Returns a float array with scores starting with doc 0 as index
 func (vsm *VSM) ComputeCosineScore(query string) []float64 {
 	size := int(vsm.DocumentWordForwardIndexer.GetSize())
-	scores := make([]float64, size)
-	lengths := make([]float64, size)
+	fmt.Printf("N = %d\n", 0)
+	scores := make([]float64, 0)
+	lengths := make([]float64, 0)
+	docIDList, err1 := vsm.DocumentWordForwardIndexer.GetDocIDList()
+
+	if err1 != nil {
+		fmt.Errorf("Error getting doc ID list: %s", err1)
+		return nil
+	}
 
 	var length float64
-	for i := 0; i < size; i++ {
+	for i := 0; i < len(docIDList); i++ {
 		length = 0
-		docList, err := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(uint64(i))
-		if err != nil {
-			fmt.Errorf("Error getting word frequency list: %s", err)
+		docList, err2 := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(docIDList[i])
+		if err2 != nil {
+			fmt.Errorf("Error getting word frequency list: %s", err2)
 			return nil
 		}
-		for j := range docList {
-			length += float64(docList[j].GetFrequency())
+		if len(docList) > 0 {
+			for j := range docList {
+				length += float64(docList[j].GetFrequency())
+			}
 		}
 		lengths[i] = length
 	}

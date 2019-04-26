@@ -6,11 +6,12 @@ import (
 	"os"
 	"strconv"
 
-	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	Indexer "./indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 
-	"github.com/davi1972/comp4321-search-engine/vsm"
-	//"./vsm"
+	//"github.com/davi1972/comp4321-search-engine/vsm"
+	"./vsm"
 )
 
 func main() {
@@ -189,15 +190,15 @@ func main() {
 	// ComputeCosineScore test
 	fmt.Println("ComputeCosineScore Test:")
 	fmt.Println("------------------------")
-	scores := v.ComputeCosineScore("paragraph document")
+	scores := v.ComputeCosineScore("transparent traffic")
 	fmt.Println(len(scores))
-	fmt.Println("\n------------------------")
-	fmt.Println(scores[0]) // 0.004435792988619592
-	fmt.Println("\n------------------------")
-	fmt.Println(scores[1]) // 0.019961068448788165
-	fmt.Println("\n------------------------")
-	fmt.Println(scores[2]) // 0.25
-	fmt.Println("\n------------------------")
+	// fmt.Println("\n------------------------")
+	// fmt.Println(scores[0]) // 0.004435792988619592
+	// fmt.Println("\n------------------------")
+	// fmt.Println(scores[1]) // 0.019961068448788165
+	// fmt.Println("\n------------------------")
+	// fmt.Println(scores[2]) // 0.25
+	// fmt.Println("\n------------------------")
 
 	fmt.Println("\n\nsearch-test.go")
 	fmt.Println("--------------")
