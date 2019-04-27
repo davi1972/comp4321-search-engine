@@ -160,7 +160,7 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) Iterate() error {
 
 // find N = num of docs
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetSize() uint64 {
-	fmt.Println("Iterating over Document Word Forward Index to count size")
+	//fmt.Println("Iterating over Document Word Forward Index to count size")
 	i := 0
 	_ = documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -176,8 +176,8 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetSize() uint64 {
 }
 
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetDocIDList() ([]uint64, error) {
-	fmt.Println("Iterating over Document Word Forward Index for Doc IDs")
-	result := make([]uint64, int(documentWordForwardIndexer.GetSize()))
+	//fmt.Println("Iterating over Document Word Forward Index for Doc IDs")
+	result := make([]uint64, 0)
 	err := documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
@@ -188,7 +188,6 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetDocIDList() ([]
 			k := item.Key()
 			err := item.Value(func(v []byte) error {
 				result = append(result, byteToUint64(k))
-				fmt.Printf("Key: %d\n", byteToUint64(k))
 				return nil
 			})
 			if err != nil {
@@ -197,7 +196,7 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetDocIDList() ([]
 		}
 		return nil
 	})
-	fmt.Printf("Size of doc ID List: %d\n", len(result))
-	fmt.Printf("Values in result: %v\n", result)
+	// fmt.Printf("Size of doc ID List: %d\n", len(result))
+	// fmt.Printf("Values in result: %v\n", result)
 	return result, err
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 
-	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
-	//Indexer "../indexer"
+	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	Indexer "../indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 )
 
@@ -31,7 +31,7 @@ func (vsm *VSM) StringToWordID(qterm string) (uint64, error) {
 // Returns the inverse document frequency of a string.
 func (vsm *VSM) InverseDocumentFreq(qterm string) (float64, error) {
 	N := vsm.DocumentWordForwardIndexer.GetSize()
-	fmt.Printf("N = %d\n", N)
+	// fmt.Printf("N = %d\n", N)
 
 	wordid, err := vsm.StringToWordID(qterm)
 
@@ -40,7 +40,7 @@ func (vsm *VSM) InverseDocumentFreq(qterm string) (float64, error) {
 	}
 
 	df, err2 := vsm.ContentInvertedIndexer.GetDocFreq(wordid)
-	fmt.Printf("df = %d\n", df)
+	// fmt.Printf("df = %d\n", df)
 
 	if err2 != nil {
 		err2 = fmt.Errorf("Error when getting inverted file from key: %s", err2)
@@ -126,37 +126,37 @@ func (vsm *VSM) CosSimilarity(query string, documentID uint64) float64 {
 }
 
 // Returns a float array with scores starting with doc 0 as index
-func (vsm *VSM) ComputeCosineScore(query string) []float64 {
-	size := int(vsm.DocumentWordForwardIndexer.GetSize())
-	fmt.Printf("N = %d\n", 0)
-	scores := make([]float64, 0)
-	lengths := make([]float64, 0)
+func (vsm *VSM) ComputeCosineScore(query string) (map[uint64]float64, error) {
+	//fmt.Printf("N = %d\n", 0)
+	scores := make(map[uint64]float64)
 	docIDList, err1 := vsm.DocumentWordForwardIndexer.GetDocIDList()
 
 	if err1 != nil {
 		fmt.Errorf("Error getting doc ID list: %s", err1)
-		return nil
+		return nil, err1
 	}
+	//fmt.Printf("\n\nlen(docIDList): %d\n\n", len(docIDList))
 
-	var length float64
+	var length float64 // length of document
 	for i := 0; i < len(docIDList); i++ {
 		length = 0
-		docList, err2 := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(docIDList[i])
+		wordFreqList, err2 := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(docIDList[i])
 		if err2 != nil {
 			fmt.Errorf("Error getting word frequency list: %s", err2)
-			return nil
+			return nil, err2
 		}
-		if len(docList) > 0 {
-			for j := range docList {
-				length += float64(docList[j].GetFrequency())
+		if len(wordFreqList) > 0 {
+			//fmt.Printf("wordFreqList len: %d, i = %d\n", len(wordFreqList), i)
+			for j := 0; j < len(wordFreqList); j++ {
+				length += float64(wordFreqList[j].GetFrequency())
 			}
+			scores[docIDList[i]] = vsm.CosSimilarity(query, docIDList[i]) / length
 		}
-		lengths[i] = length
+		//scores[docIDList[i]] = vsm.CosSimilarity(query, docList[i].GetID()) / length
 	}
 
-	for c := 0; c < size; c++ {
-		scores[c] = vsm.CosSimilarity(query, uint64(c))
-		scores[c] = scores[c] / lengths[c]
-	}
-	return scores
+	// for i := 0; i < len(docIDList); i++ {
+	// 	fmt.Printf("scores [ %d ] = %f", docIDList[i], scores[docIDList[i]])
+	// }
+	return scores, err1
 }
