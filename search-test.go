@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 
 	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 	Indexer "./indexer"
@@ -190,28 +189,29 @@ func main() {
 	// ComputeCosineScore test
 	fmt.Println("ComputeCosineScore Test:")
 	fmt.Println("------------------------")
-	scores := v.ComputeCosineScore("transparent traffic")
+	scores, _ := v.ComputeCosineScore("transparent traffic")
 	fmt.Println(len(scores))
-	// fmt.Println("\n------------------------")
-	// fmt.Println(scores[0]) // 0.004435792988619592
-	// fmt.Println("\n------------------------")
-	// fmt.Println(scores[1]) // 0.019961068448788165
-	// fmt.Println("\n------------------------")
-	// fmt.Println(scores[2]) // 0.25
-	// fmt.Println("\n------------------------")
+	fmt.Println("\n------------------------")
+	fmt.Println(scores[0]) //
+	fmt.Println("\n------------------------")
+	fmt.Println(scores[1]) //
+	fmt.Println("\n------------------------")
+	fmt.Println(scores[2]) //
+	fmt.Println("\n------------------------")
 
 	fmt.Println("\n\nsearch-test.go")
 	fmt.Println("--------------")
 	fmt.Println("Search: (enter keywords below and press enter)")
 
 	scanner := bufio.NewScanner(os.Stdin)
+	docList, _ := documentWordForwardIndexer.GetDocIDList()
 	var q string = ""
 	for scanner.Scan() {
 		q = scanner.Text()
 		fmt.Printf("Results for %s:\n", q)
-		score := v.ComputeCosineScore(q)
-		for i := range score {
-			fmt.Println("Doc" + strconv.Itoa(i) + " CosSim Score: " + fmt.Sprint(score[i]))
+		score, _ := v.ComputeCosineScore(q)
+		for i := 0; i < len(docList); i++ {
+			fmt.Printf("Doc %d CosSim Score: %f\n", i, score[docList[i]])
 		}
 		fmt.Println("\nsearch-test.go")
 		fmt.Println("--------------")
