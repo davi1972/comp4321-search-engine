@@ -27,7 +27,7 @@ func (mappingIndexer *MappingIndexer) Initialize(path string) error {
 		return fmt.Errorf("Error while initializing: %s", err)
 	}
 	mappingIndexer.db = db
-	mappingIndexer.sequence, _ = db.GetSequence([]byte("doc-"), 1000)
+	mappingIndexer.sequence, _ = db.GetSequence([]byte("sequence"), 1000)
 	mappingIndexer.databasePath = path
 	return err
 }
@@ -138,6 +138,29 @@ func (mappingIndexer *MappingIndexer) Iterate() {
 		}
 		return nil
 	})
+}
+
+func (mappingIndexer *MappingIndexer) AllValue() []string {
+	var result []string
+	_ = mappingIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			err := item.Value(func(v []byte) error {
+				result = append(result, string(k))
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return result
 }
 
 func (mappingIndexer *MappingIndexer) DeleteKeyValuePair(key string) error {

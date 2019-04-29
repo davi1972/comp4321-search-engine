@@ -8,7 +8,9 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
+	"github.com/davi1972/comp4321-search-engine/vsm"
 	"github.com/dgraph-io/badger"
 
 	"github.com/gorilla/mux"
@@ -28,6 +30,7 @@ type server struct {
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
 	router                            *mux.Router
+	vsm                               *vsm.VSM
 }
 
 type Edge struct {
@@ -48,6 +51,29 @@ type GraphResponse struct {
 	Nodes       []Node `json:"nodes"`
 	Edges       []Edge `json:"links"`
 	EdgesString []EdgeString
+}
+
+type WordListResponse struct {
+	WordList []string `json:"words"`
+}
+
+type KeywordsFrequency struct {
+	Keyword   string
+	Frequency uint64
+}
+
+type QueryResponse struct {
+	Score            float64             `json:"score"`
+	Title            string              `json:"title"`
+	URL              string              `json:"url"`
+	LastModifiedDate time.Time           `json:"last-modified"`
+	KeyWord          []KeywordsFrequency `json:"keywords"`
+	ParentList       []string            `json:"parent-urls"`
+	ChildList        []string            `json:"child-urls"`
+}
+
+type QueryListResponse struct {
+	List []QueryResponse `json:"documents"`
 }
 
 // S ...
@@ -131,7 +157,18 @@ func (s *server) Initialize() {
 	}
 
 	s.router = mux.NewRouter()
-
+	s.vsm = &vsm.VSM{
+		DocumentIndexer:                   s.documentIndexer,
+		WordIndexer:                       s.wordIndexer,
+		ReverseDocumentIndexer:            s.reverseDocumentIndexer,
+		ReverseWordIndexer:                s.reverseWordIndexer,
+		PagePropertiesIndexer:             s.pagePropertiesIndexer,
+		TitleInvertedIndexer:              s.titleInvertedIndexer,
+		ContentInvertedIndexer:            s.contentInvertedIndexer,
+		DocumentWordForwardIndexer:        s.documentWordForwardIndexer,
+		ParentChildDocumentForwardIndexer: s.parentChildDocumentForwardIndexer,
+		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
+	}
 }
 
 func (s *server) Release() {
@@ -211,6 +248,56 @@ func graphHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResult)
 }
 
+func wordListHandler(w http.ResponseWriter, r *http.Request) {
+	resp := &WordListResponse{}
+	resp.WordList = S.wordIndexer.AllValue()
+	jsonResult, _ := json.Marshal(resp)
+	w.Write(jsonResult)
+}
+
+func queryHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	query := vars["queryString"]
+	resp := &QueryListResponse{}
+	cosScore, err := S.vsm.ComputeCosineScore(query)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid parameter value! Details: " + err.Error()))
+	}
+	docList, _ := S.documentWordForwardIndexer.GetDocIDList()
+	for i, score := range cosScore {
+		doc := &QueryResponse{}
+		doc.Score = score
+		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(docList[i])
+		doc.Title = pageProps.GetTitle()
+		doc.URL = pageProps.GetUrl()
+		//doc.LastModifiedDate = pageProps.GetDate()
+		childList, _ := S.parentChildDocumentForwardIndexer.GetIdListFromKey(docList[i])
+		for _, childID := range childList {
+			str, err := S.reverseDocumentIndexer.GetValueFromKey(childID)
+			if err == nil {
+				doc.ChildList = append(doc.ChildList, str)
+			}
+		}
+		parentList, _ := S.childParentDocumentForwardIndexer.GetIdListFromKey(docList[i])
+		for _, parentID := range parentList {
+			str, err := S.reverseDocumentIndexer.GetValueFromKey(parentID)
+			if err == nil {
+				doc.ParentList = append(doc.ParentList, str)
+			}
+		}
+		resp.List = append(resp.List, *doc)
+	}
+	jsonResult, jsonErr := json.Marshal(resp)
+	if jsonErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Internal Server Error! Details: " + jsonErr.Error()))
+	}
+	w.Write(jsonResult)
+}
+
 func (s *server) routes() {
 	s.router.HandleFunc("/graph/{documentID}", graphHandler)
+	s.router.HandleFunc("/wordList", wordListHandler)
+	s.router.HandleFunc("/query/{queryString}", queryHandler)
 }
