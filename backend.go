@@ -29,9 +29,9 @@ type server struct {
 	titleInvertedIndexer              *Indexer.InvertedFileIndexer
 	contentInvertedIndexer            *Indexer.InvertedFileIndexer
 	documentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
+	titleWordForwardIndexer           *Indexer.DocumentWordForwardIndexer
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
-	wordCountContentIndexer           *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -157,11 +157,13 @@ func (s *server) Initialize() {
 	if childParentDocumentForwardIndexerErr != nil {
 		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
 	}
-	s.wordCountContentIndexer = &Indexer.PageRankIndexer{}
-	wordCountContentIndexerErr := s.wordCountContentIndexer.Initialize(wd + "/db/wordCountContentIndexer")
-	if wordCountContentIndexerErr != nil {
-		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountContentIndexerErr)
+
+	s.titleWordForwardIndexer = &Indexer.DocumentWordForwardIndexer{}
+	titleWordForwardIndexerErr := s.titleWordForwardIndexer.Initialize(wd + "/db/titleWordForwardIndex")
+	if titleWordForwardIndexerErr != nil {
+		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", titleWordForwardIndexerErr)
 	}
+
 	s.router = mux.NewRouter()
 	s.vsm = &vsm.VSM{
 		DocumentIndexer:                   s.documentIndexer,
@@ -174,23 +176,11 @@ func (s *server) Initialize() {
 		DocumentWordForwardIndexer:        s.documentWordForwardIndexer,
 		ParentChildDocumentForwardIndexer: s.parentChildDocumentForwardIndexer,
 		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
-		WordCountContentIndexer:           s.wordCountContentIndexer,
+		TitleWordForwardIndexer:           s.titleWordForwardIndexer,
 	}
 }
 
 func (s *server) Release() {
-
-	s.documentIndexer.Iterate()
-	s.reverseDocumentIndexer.Iterate()
-	s.wordIndexer.Iterate()
-	s.reverseWordIndexer.Iterate()
-	s.pagePropertiesIndexer.Iterate()
-	s.titleInvertedIndexer.Iterate()
-	s.contentInvertedIndexer.Iterate()
-	s.documentWordForwardIndexer.Iterate()
-	s.parentChildDocumentForwardIndexer.Iterate()
-	s.childParentDocumentForwardIndexer.Iterate()
-	s.wordCountContentIndexer.Iterate()
 	s.documentIndexer.Release()
 	s.reverseDocumentIndexer.Release()
 	s.wordIndexer.Release()
@@ -201,7 +191,7 @@ func (s *server) Release() {
 	s.documentWordForwardIndexer.Release()
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
-	s.wordCountContentIndexer.Release()
+	s.titleWordForwardIndexer.Release()
 }
 
 func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]uint64, error) {

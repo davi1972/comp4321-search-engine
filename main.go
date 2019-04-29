@@ -1,8 +1,6 @@
 package main
 
 import (
-	"math"
-
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
@@ -100,6 +98,14 @@ func main() {
 	defer documentWordForwardIndexer.Backup()
 	defer documentWordForwardIndexer.Release()
 
+	titleWordForwardIndexer := &Indexer.DocumentWordForwardIndexer{}
+	titleWordForwardIndexerErr := titleWordForwardIndexer.Initialize(wd + "/db/titleWordForwardIndex")
+	if titleWordForwardIndexerErr != nil {
+		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", titleWordForwardIndexerErr)
+	}
+	defer titleWordForwardIndexer.Backup()
+	defer titleWordForwardIndexer.Release()
+
 	parentChildDocumentForwardIndexer := &Indexer.ForwardIndexer{}
 	parentChildDocumentForwardIndexerErr := parentChildDocumentForwardIndexer.Initialize(wd + "/db/parentChildDocumentForwardIndex")
 	if parentChildDocumentForwardIndexerErr != nil {
@@ -115,22 +121,6 @@ func main() {
 	}
 	defer childParentDocumentForwardIndexer.Backup()
 	defer childParentDocumentForwardIndexer.Release()
-
-	wordCountContentIndexer := &Indexer.PageRankIndexer{}
-	wordCountContentIndexerErr := wordCountContentIndexer.Initialize(wd + "/db/wordCountContentIndexer")
-	if wordCountContentIndexerErr != nil {
-		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountContentIndexerErr)
-	}
-	defer wordCountContentIndexer.Backup()
-	defer wordCountContentIndexer.Release()
-
-	wordCountTitleIndexer := &Indexer.PageRankIndexer{}
-	wordCountTitleIndexerErr := wordCountTitleIndexer.Initialize(wd + "/db/wordCountTitleIndexer")
-	if wordCountTitleIndexerErr != nil {
-		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountContentIndexerErr)
-	}
-	defer wordCountTitleIndexer.Backup()
-	defer wordCountTitleIndexer.Release()
 
 	pages := make([]pageMap, 0)
 	maxDepth := 3
@@ -201,6 +191,7 @@ func main() {
 			processedTitle := tokenizer.Tokenize(title)
 
 			titleWordList := make(map[uint64]*Indexer.InvertedFile)
+			titleWordCounter := make(map[uint64]uint64)
 			for i, v := range processedTitle {
 				// Add Word to id index
 				wordID, err := wordIndexer.GetValueFromKey(v)
@@ -215,11 +206,24 @@ func main() {
 					titleWordList[wordID] = Indexer.CreateInvertedFile(id)
 					titleWordList[wordID].AddWordPositions(uint64(i))
 				}
+
+				if _, contain = titleWordCounter[wordID]; contain {
+					titleWordCounter[wordID]++
+				} else {
+					titleWordCounter[wordID] = 1
+				}
 			}
 
 			for k, v := range titleWordList {
 				titleInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
 			}
+
+			// Get Unique Number of words in the map
+			titleFrequencySlice := make([]Indexer.WordFrequency, 0)
+			for k, v := range titleWordCounter {
+				titleFrequencySlice = append(titleFrequencySlice, Indexer.CreateWordFrequency(k, v))
+			}
+			titleWordForwardIndexer.AddWordFrequencyListToKey(id, titleFrequencySlice)
 
 			// Check for duplicate words in the document
 			contentWordList := make(map[uint64]*Indexer.InvertedFile)
@@ -251,14 +255,11 @@ func main() {
 				contentInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
 			}
 
-			var docLength float64
 			// Get Unique Number of words in the map
 			wordFrequencySlice := make([]Indexer.WordFrequency, 0)
 			for k, v := range contentWordCounter {
 				wordFrequencySlice = append(wordFrequencySlice, Indexer.CreateWordFrequency(k, v))
-				docLength += float64(v * v)
 			}
-			wordCountContentIndexer.AddKeyToIndex(id, math.Sqrt(docLength))
 			documentWordForwardIndexer.AddWordFrequencyListToKey(id, wordFrequencySlice)
 
 		} else {
@@ -326,5 +327,5 @@ func main() {
 	// documentWordForwardIndexer.Iterate()
 	// parentChildDocumentForwardIndexer.Iterate()
 	// childParentDocumentForwardIndexer.Iterate()
-	wordCountContentIndexer.Iterate()
+	titleWordForwardIndexer.Iterate()
 }
