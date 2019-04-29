@@ -50,12 +50,21 @@ func main() {
 	defer childParentDocumentForwardIndexer.Backup()
 	defer childParentDocumentForwardIndexer.Release()
 
+	pageRankIndexer := &Indexer.PageRankIndexer{}
+	pageRankIndexerErr := pageRankIndexer.Initialize(parent + "/db/pageRankIndex")
+	if pageRankIndexerErr != nil {
+		fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
+	}
+	defer pageRankIndexer.Backup()
+	defer pageRankIndexer.Release()
+
+
 	pageIds, err := documentIndexer.All()
 
 	if (err != nil){
 		fmt.Println(err)
 	}
-
+	fmt.Println("Page IDs")
 	fmt.Println(pageIds)
 
 	for _, id := range pageIds {
@@ -91,16 +100,26 @@ func main() {
 
 	}
 
-	fmt.Println(parents)
-	fmt.Println(pageRanks)
-	fmt.Println(numOutlinks)
+	calculatePageRank(0.85, 0.0001)
 
-	calculatePageRank(1, 0.001)
+	for k,v := range pageRanks {
+		
+		err := pageRankIndexer.AddKeyToIndex(k, v)
+
+		if(err != nil){
+			fmt.Printf("Error inserting pagerank value: %s", err)
+		}
+
+	}
+
+	fmt.Println("Iterating Page Rank Values")
+	pageRankIndexer.Iterate()
+
 
 }
 
 func calculatePageRank(damping float64, threshold float64){
-	fmt.Println("Iteration i:", i)
+	fmt.Println("Iteration:", i)
 	fmt.Println(pageRanks)
 	oldRanks := make(map[uint64]float64)
 

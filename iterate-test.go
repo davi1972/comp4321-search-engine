@@ -127,7 +127,7 @@ func main() {
 			wflist, _ := documentWordForwardIndexer.GetWordFrequencyListFromKey(id)
 
 			for j := range wflist {
-				fmt.Println("key: " + fmt.Sprint(wflist[j].GetID()) + " value: " + fmt.Sprint(wflist[j].GetFrequency()) + " wordID: " + fmt.Sprint(wflist[j].GetWordID()))
+				fmt.Println("key: " + fmt.Sprint(wflist[j].GetID()) + " value: " + fmt.Sprint(wflist[j].GetFrequency()) + " wordID: " + fmt.Sprint(wflist[j].GetID()))
 
 			}
 		}

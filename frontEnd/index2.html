@@ -42,10 +42,16 @@
       template: `
       <div>
         <div class="user" v-for="user in users">
-        <p>User: {{user.name}}</p>
+        <p v-on:click="xxx">User: {{user.name}}</p>
         </div>
       </div>
         `
+      ,
+      methods: {
+        ddd: function(){
+          console.log("HAns");
+        }
+      }
     });
 
     new Vue({
@@ -59,6 +65,9 @@
       methods: {
         changeTitle() {
           this.title = "Changed title";
+        },
+        xxx: function(){
+          console.log("HAns");
         }
       }
     })

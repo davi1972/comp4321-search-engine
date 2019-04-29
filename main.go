@@ -29,7 +29,7 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	// rootPage := "https://www.cse.ust.hk"
+	//rootPage := "https://www.cse.ust.hk"
 	rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
@@ -97,6 +97,14 @@ func main() {
 	}
 	defer documentWordForwardIndexer.Backup()
 	defer documentWordForwardIndexer.Release()
+
+	titleWordForwardIndexer := &Indexer.DocumentWordForwardIndexer{}
+	titleWordForwardIndexerErr := titleWordForwardIndexer.Initialize(wd + "/db/titleWordForwardIndex")
+	if titleWordForwardIndexerErr != nil {
+		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", titleWordForwardIndexerErr)
+	}
+	defer titleWordForwardIndexer.Backup()
+	defer titleWordForwardIndexer.Release()
 
 	parentChildDocumentForwardIndexer := &Indexer.ForwardIndexer{}
 	parentChildDocumentForwardIndexerErr := parentChildDocumentForwardIndexer.Initialize(wd + "/db/parentChildDocumentForwardIndex")
@@ -183,6 +191,7 @@ func main() {
 			processedTitle := tokenizer.Tokenize(title)
 
 			titleWordList := make(map[uint64]*Indexer.InvertedFile)
+			titleWordCounter := make(map[uint64]uint64)
 			for i, v := range processedTitle {
 				// Add Word to id index
 				wordID, err := wordIndexer.GetValueFromKey(v)
@@ -197,11 +206,24 @@ func main() {
 					titleWordList[wordID] = Indexer.CreateInvertedFile(id)
 					titleWordList[wordID].AddWordPositions(uint64(i))
 				}
+
+				if _, contain = titleWordCounter[wordID]; contain {
+					titleWordCounter[wordID]++
+				} else {
+					titleWordCounter[wordID] = 1
+				}
 			}
 
 			for k, v := range titleWordList {
 				titleInvertedIndexer.AddKeyToIndexOrUpdate(k, *v)
 			}
+
+			// Get Unique Number of words in the map
+			titleFrequencySlice := make([]Indexer.WordFrequency, 0)
+			for k, v := range titleWordCounter {
+				titleFrequencySlice = append(titleFrequencySlice, Indexer.CreateWordFrequency(k, v))
+			}
+			titleWordForwardIndexer.AddWordFrequencyListToKey(id, titleFrequencySlice)
 
 			// Check for duplicate words in the document
 			contentWordList := make(map[uint64]*Indexer.InvertedFile)
@@ -296,7 +318,7 @@ func main() {
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
 	// Iterator to see contents of db
-	documentIndexer.Iterate()
+	// documentIndexer.Iterate()
 	// reverseDocumentIndexer.Iterate()
 	// contentInvertedIndexer.Iterate()
 	// wordIndexer.Iterate()
@@ -305,4 +327,5 @@ func main() {
 	// documentWordForwardIndexer.Iterate()
 	// parentChildDocumentForwardIndexer.Iterate()
 	// childParentDocumentForwardIndexer.Iterate()
+	titleWordForwardIndexer.Iterate()
 }

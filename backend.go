@@ -3,12 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
 	"strconv"
 	"syscall"
+	"time"
 
+	"github.com/davi1972/comp4321-search-engine/vsm"
 	"github.com/dgraph-io/badger"
 
 	"github.com/gorilla/mux"
@@ -25,9 +29,13 @@ type server struct {
 	titleInvertedIndexer              *Indexer.InvertedFileIndexer
 	contentInvertedIndexer            *Indexer.InvertedFileIndexer
 	documentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
+	titleWordForwardIndexer           *Indexer.DocumentWordForwardIndexer
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
+	wordCountContentIndexer           *Indexer.PageRankIndexer
+	pageRankIndexer					  *Indexer.PageRankIndexer
 	router                            *mux.Router
+	vsm                               *vsm.VSM
 }
 
 type Edge struct {
@@ -50,9 +58,35 @@ type GraphResponse struct {
 	EdgesString []EdgeString
 }
 
+type WordListResponse struct {
+	WordList []string `json:"words"`
+}
+
+type WordFrequencyString struct {
+	Word      string `json:"word"`
+	Frequency uint64 `json:"frequency"`
+}
+
+type QueryResponse struct {
+	VSMScore         float64               `json:"vsmscore"`
+	PageRankScore	 float64			   `json:"pagerankscore"`
+	Score			 float64			   `json:"score"`
+	Title            string                `json:"title"`
+	URL              string                `json:"url"`
+	LastModifiedDate time.Time             `json:"last_modified"`
+	KeyWord          []WordFrequencyString `json:"keywords"`
+	ParentList       []string              `json:"parent_urls"`
+	ChildList        []string              `json:"child_urls"`
+}
+
+type QueryListResponse struct {
+	List []QueryResponse `json:"documents"`
+}
+
 // S ...
 var S server
 var maxDepth = 2
+var prWeight = 0.8
 
 func main() {
 	S.Initialize()
@@ -64,7 +98,6 @@ func main() {
 		S.Release()
 		os.Exit(1)
 	}()
-	S.parentChildDocumentForwardIndexer.Iterate()
 	http.ListenAndServe("localhost:8000", S.router)
 }
 
@@ -130,8 +163,33 @@ func (s *server) Initialize() {
 		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
 	}
 
-	s.router = mux.NewRouter()
+	s.titleWordForwardIndexer = &Indexer.DocumentWordForwardIndexer{}
+	titleWordForwardIndexerErr := s.titleWordForwardIndexer.Initialize(wd + "/db/titleWordForwardIndex")
+	if titleWordForwardIndexerErr != nil {
+		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", titleWordForwardIndexerErr)
+	}
 
+	s.pageRankIndexer = &Indexer.PageRankIndexer{}
+	pageRankIndexerErr := s.pageRankIndexer.Initialize(wd + "/db/pageRankIndex")
+	if pageRankIndexerErr != nil {
+		fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
+	}
+
+
+	s.router = mux.NewRouter()
+	s.vsm = &vsm.VSM{
+		DocumentIndexer:                   s.documentIndexer,
+		WordIndexer:                       s.wordIndexer,
+		ReverseDocumentIndexer:            s.reverseDocumentIndexer,
+		ReverseWordIndexer:                s.reverseWordIndexer,
+		PagePropertiesIndexer:             s.pagePropertiesIndexer,
+		TitleInvertedIndexer:              s.titleInvertedIndexer,
+		ContentInvertedIndexer:            s.contentInvertedIndexer,
+		DocumentWordForwardIndexer:        s.documentWordForwardIndexer,
+		ParentChildDocumentForwardIndexer: s.parentChildDocumentForwardIndexer,
+		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
+		TitleWordForwardIndexer:           s.titleWordForwardIndexer,
+	}
 }
 
 func (s *server) Release() {
@@ -145,6 +203,9 @@ func (s *server) Release() {
 	s.documentWordForwardIndexer.Release()
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
+	s.pageRankIndexer.Release()
+	s.wordCountContentIndexer.Release()
+	s.titleWordForwardIndexer.Release()
 }
 
 func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]uint64, error) {
@@ -211,6 +272,92 @@ func graphHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResult)
 }
 
+func wordListHandler(w http.ResponseWriter, r *http.Request) {
+	resp := &WordListResponse{}
+	resp.WordList = S.wordIndexer.AllValue()
+	jsonResult, _ := json.Marshal(resp)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResult)
+}
+
+func queryHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	query := vars["queryString"]
+	resp := &QueryListResponse{}
+
+	start := time.Now()
+	cosScore, err := S.vsm.ComputeCosineScore(query)
+	elapsed := time.Since(start)
+	log.Printf("Cosine took %s", elapsed)
+	start = time.Now()
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("400 - Invalid parameter value! Details: " + err.Error()))
+	}
+	for i, score := range cosScore {
+		if score == 0 {
+			continue
+		}
+
+		pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
+
+		if(err!=nil){
+			fmt.Println("error retrieving page rank value", err)
+		}
+
+
+		doc := &QueryResponse{}
+		doc.PageRankScore = pageRankScore
+		doc.VSMScore = score
+		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
+		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(i)
+		doc.Title = pageProps.GetTitle()
+		doc.URL = pageProps.GetUrl()
+		doc.LastModifiedDate = pageProps.GetDate()
+		childList, _ := S.parentChildDocumentForwardIndexer.GetIdListFromKey(i)
+		for _, childID := range childList {
+			str, err := S.reverseDocumentIndexer.GetValueFromKey(childID)
+			if err == nil {
+				doc.ChildList = append(doc.ChildList, str)
+			}
+		}
+		parentList, _ := S.childParentDocumentForwardIndexer.GetIdListFromKey(i)
+		for _, parentID := range parentList {
+			str, err := S.reverseDocumentIndexer.GetValueFromKey(parentID)
+			if err == nil {
+				doc.ParentList = append(doc.ParentList, str)
+			}
+		}
+
+		wordFreq, _ := S.documentWordForwardIndexer.GetWordFrequencyListFromKey(i)
+		sort.Sort(Indexer.WordFrequencySorter(wordFreq))
+		for _, wordF := range wordFreq[:5] {
+			wordStr, wordErr := S.reverseWordIndexer.GetValueFromKey(wordF.GetID())
+			if wordErr == nil {
+				doc.KeyWord = append(doc.KeyWord, WordFrequencyString{Word: wordStr, Frequency: wordF.GetFrequency()})
+			}
+		}
+
+		resp.List = append(resp.List, *doc)
+	}
+	jsonResult, jsonErr := json.Marshal(resp)
+	if jsonErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Internal Server Error! Details: " + jsonErr.Error()))
+	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResult)
+
+	elapsed = time.Since(start)
+	log.Printf("Forming response took %s", elapsed)
+}
+
 func (s *server) routes() {
 	s.router.HandleFunc("/graph/{documentID}", graphHandler)
+	s.router.HandleFunc("/wordList", wordListHandler)
+	s.router.HandleFunc("/query/{queryString}", queryHandler)
 }

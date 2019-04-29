@@ -15,16 +15,22 @@ type DocumentWordForwardIndexer struct {
 }
 
 type WordFrequency struct {
-	wordID    uint64
-	frequency uint64
+	WordID    uint64
+	Frequency uint64
 }
 
+type WordFrequencySorter []WordFrequency
+
+func (a WordFrequencySorter) Len() int           { return len(a) }
+func (a WordFrequencySorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a WordFrequencySorter) Less(i, j int) bool { return a[i].Frequency > a[j].Frequency }
+
 func (w *WordFrequency) GetID() uint64 {
-	return w.wordID
+	return w.WordID
 }
 
 func (w *WordFrequency) GetFrequency() uint64 {
-	return w.frequency
+	return w.Frequency
 }
 
 func CreateWordFrequency(id uint64, f uint64) WordFrequency {
@@ -32,7 +38,7 @@ func CreateWordFrequency(id uint64, f uint64) WordFrequency {
 }
 
 func wordFrequencyToString(word *WordFrequency) string {
-	return strconv.Itoa(int(word.wordID)) + " " + strconv.Itoa(int(word.frequency))
+	return strconv.Itoa(int(word.WordID)) + " " + strconv.Itoa(int(word.Frequency))
 }
 
 func stringToWordFrequency(str string) WordFrequency {
@@ -40,10 +46,6 @@ func stringToWordFrequency(str string) WordFrequency {
 	id, _ := strconv.Atoi(splitString[0])
 	freq, _ := strconv.Atoi(splitString[1])
 	return WordFrequency{uint64(id), uint64(freq)}
-}
-
-func (w *WordFrequency) GetWordID() uint64 {
-	return w.wordID
 }
 
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) Initialize(path string) error {
@@ -160,7 +162,7 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) Iterate() error {
 
 // find N = num of docs
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetSize() uint64 {
-	fmt.Println("Iterating over Document Word Forward Index to count size")
+	//fmt.Println("Iterating over Document Word Forward Index to count size")
 	i := 0
 	_ = documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -176,8 +178,8 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetSize() uint64 {
 }
 
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetDocIDList() ([]uint64, error) {
-	fmt.Println("Iterating over Document Word Forward Index for Doc IDs")
-	result := make([]uint64, int(documentWordForwardIndexer.GetSize()))
+	//fmt.Println("Iterating over Document Word Forward Index for Doc IDs")
+	result := make([]uint64, 0)
 	err := documentWordForwardIndexer.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
@@ -188,7 +190,6 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetDocIDList() ([]
 			k := item.Key()
 			err := item.Value(func(v []byte) error {
 				result = append(result, byteToUint64(k))
-				fmt.Printf("Key: %d\n", byteToUint64(k))
 				return nil
 			})
 			if err != nil {
@@ -197,7 +198,7 @@ func (documentWordForwardIndexer *DocumentWordForwardIndexer) GetDocIDList() ([]
 		}
 		return nil
 	})
-	fmt.Printf("Size of doc ID List: %d\n", len(result))
-	fmt.Printf("Values in result: %v\n", result)
+	// fmt.Printf("Size of doc ID List: %d\n", len(result))
+	// fmt.Printf("Values in result: %v\n", result)
 	return result, err
 }

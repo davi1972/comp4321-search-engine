@@ -2,7 +2,7 @@
 Page 1 Test
 https://apartemen.win/comp4321/page1.html
 Fri, 26 Apr 2019 19:27:00 UTC, 1395 B
-etc 2, object 1, paragraph 4, sequenc 1, pure 1, describ 2, found 1, life 1, resembl 1, us 1, try 2, allow 1, page 3, unfold 1, view 1, account 1, webpag 1, straight 1, forward 1, actual 1, untru 1, mine 1, born 1, narr 4, write 5, style 3, refer 1, choos 1, rememb 1, student 1, stori 4, happen 2, cours 1, activ 1, littl 1, experi 1, word 1, unit 1, vivid 1, exampl 1, writer 1, artist 2, includ 1, teacher 2, foreign 1, arriv 1, assign 1, tell 3, licens 1, person 5, detail 1, third 1, fiction 2, freedom 2, prefer 1, factual 1, time 1, event 1, easiest 1, chang 1, 
+cours 1, object 1, forward 1, allow 1, happen 2, describ 2, choos 1, born 1, event 1, refer 1, factual 1, exampl 1, third 1, untru 1, pure 1, narr 4, foreign 1, detail 1, stori 4, writer 1, actual 1, time 1, try 2, mine 1, chang 1, us 1, webpag 1, sequenc 1, activ 1, freedom 2, teacher 2, easiest 1, licens 1, unit 1, vivid 1, page 3, tell 3, unfold 1, write 5, experi 1, paragraph 4, littl 1, style 3, straight 1, account 1, life 1, student 1, etc 2, person 5, word 1, view 1, assign 1, fiction 2, found 1, artist 2, arriv 1, resembl 1, prefer 1, includ 1, rememb 1, 
 Children:
 https://apartemen.win/comp4321/page2.html
 https://apartemen.win/comp4321/page3.html
@@ -12,10 +12,10 @@ https://apartemen.win/comp4321/page4.html
 Your Title Here
 https://apartemen.win/comp4321/page2.html
 Fri, 26 Apr 2019 19:30:21 UTC, 306 B
-nifti 1, paragraph 3, bold 1, page 2, link 1, site 1, header 2, medium 1, sentenc 1, break 1, ital 1, 
+page 2, link 1, site 1, header 2, medium 1, paragraph 3, sentenc 1, break 1, ital 1, nifti 1, bold 1, 
 Children:
-https://apartemen.win/comp4321/page1.html
 https://apartemen.win/comp4321/page3.html
+https://apartemen.win/comp4321/page1.html
 ------------------------------------------------------------------------
 2
 A Simple HTML Document
@@ -29,7 +29,7 @@ https://apartemen.win/comp4321/page1.html
 Page 4 is Awesome
 https://apartemen.win/comp4321/page4.html
 Fri, 26 Apr 2019 19:27:01 UTC, 1092 B
-light 1, edg 1, search 1, dad 1, game 1, didn 2, dome 1, shed 1, shut 1, citi 2, close 2, frame 1, passion 1, poor 1, drip 1, scare 1, html 1, huntress 1, ey 2, window 2, moon 1, stench 1, camel 1, head 1, take 1, document 1, fear 1, rain 1, shelter 1, cellar 1, on 2, tell 1, simpl 1, scrub 1, heat 1, block 1, mimick 1, children 2, dark 1, molt 1, movi 1, whine 1, stai 1, pinkish 1, peopl 1, kept 1, monster 1, link 1, foreign 1, morn 2, stain 1, rest 1, feather 1, instead 1, hunger 1, eav 1, bed 1, herd 1, fur 1, sound 2, slam 1, stori 1, roof 1, foam 1, stood 1, grip 1, tenor 1, page 1, embassi 1, finger 1, grew 1, lion 4, 
+dark 1, shelter 1, kept 1, html 1, head 1, fur 1, frame 1, search 1, citi 2, molt 1, finger 1, embassi 1, block 1, camel 1, document 1, scrub 1, peopl 1, movi 1, hunger 1, fear 1, stai 1, feather 1, on 2, monster 1, close 2, grip 1, bed 1, herd 1, link 1, didn 2, moon 1, heat 1, game 1, poor 1, roof 1, light 1, instead 1, edg 1, tenor 1, huntress 1, foreign 1, shed 1, take 1, lion 4, dad 1, tell 1, whine 1, rain 1, rest 1, drip 1, stench 1, grew 1, page 1, stood 1, cellar 1, simpl 1, children 2, stain 1, eav 1, pinkish 1, morn 2, foam 1, stori 1, scare 1, mimick 1, slam 1, ey 2, dome 1, sound 2, window 2, shut 1, passion 1, 
 Children:
 https://apartemen.win/comp4321/page3.html
 ------------------------------------------------------------------------
