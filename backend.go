@@ -32,6 +32,7 @@ type server struct {
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
 	wordCountDocumentIndexer          *Indexer.VSMIndexer
+	// pageRankIndexer				 	  *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -66,7 +67,9 @@ type WordFrequencyString struct {
 }
 
 type QueryResponse struct {
-	Score            float64               `json:"score"`
+	VSMScore         float64               `json:"vsmscore"`
+	PageRankScore	 float64			   `json:"pagerankscore"`
+	Score			 float64			   `json:"score"`
 	Title            string                `json:"title"`
 	URL              string                `json:"url"`
 	LastModifiedDate time.Time             `json:"last-modified"`
@@ -82,6 +85,7 @@ type QueryListResponse struct {
 // S ...
 var S server
 var maxDepth = 2
+var prWeight = 0.8
 
 func main() {
 	S.Initialize()
@@ -162,6 +166,14 @@ func (s *server) Initialize() {
 	if wordCountDocumentIndexerErr != nil {
 		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountDocumentIndexerErr)
 	}
+
+	// s.pageRankIndexer = &Indexer.PageRankIndexer{}
+	// pageRankIndexerErr := s.pageRankIndexer.Initialize(wd + "/db/pageRankIndex")
+	// if pageRankIndexerErr != nil {
+	// 	fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
+	// }
+
+
 	s.router = mux.NewRouter()
 	s.vsm = &vsm.VSM{
 		DocumentIndexer:                   s.documentIndexer,
@@ -189,6 +201,7 @@ func (s *server) Release() {
 	s.documentWordForwardIndexer.Release()
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
+	// s.pageRankIndexer.Release()
 }
 
 func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]uint64, error) {
@@ -263,6 +276,7 @@ func wordListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func queryHandler(w http.ResponseWriter, r *http.Request) {
+
 	vars := mux.Vars(r)
 	query := vars["queryString"]
 	resp := &QueryListResponse{}
@@ -281,8 +295,18 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		if score == 0 {
 			continue
 		}
+
+		// pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
+
+		if(err!=nil){
+			fmt.Println("error retrieving page rank value", err)
+		}
+
+
 		doc := &QueryResponse{}
+		// doc.PageRankScore = pageRankScore
 		doc.Score = score
+		// doc.Score = prWeight*pageRankScore + (1-prWeight)*score
 		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(i)
 		doc.Title = pageProps.GetTitle()
 		doc.URL = pageProps.GetUrl()

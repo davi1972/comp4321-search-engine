@@ -3,6 +3,7 @@
 <head>
     <title>Search Engine</title>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
@@ -17,12 +18,15 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="search-bar">
-                            <input class="form-control form-control-lg search-input" type="text">
+                            <input class="form-control form-control-lg search-input" type="text" v-model="query">
                             <span class="search-button">
-                                <button class="btn btn-default">
+                                <button v-on:click="checkQuery" class="btn btn-default">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </span>
+                            <p class="ml-2" v-if="errors">
+                               {{ errors }}
+                            </p>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -43,42 +47,6 @@
         <div class="container">
             <div class="row search-result">
                 <div class="col-md-8">
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
                     <div class="card result">
                         <div class="card-body">
                             <p class="title">Avengers: Endgame (2019) - IMDb</p>
@@ -123,15 +91,32 @@
         new Vue({
             el: '#app',
             data: {
-                title: "Hellow",
-                cssClass: '',
-                show: true,
-
+                errors: "",
+                query: '',
+                results: []
             },
             methods: {
-                changeTitle() {
-                    this.title = "Changed title";
+                checkQuery: function(e) {
+
+                    if (!this.query) {
+                        this.errors = "Search query cannot be empty";
+                    } else {
+                        this.errors = '';
+                    }
+
+                    if (!this.errors) {
+                        return true;
+                    }
+
+                    e.preventDefault();
+                },
+
+                search: function(query){
+
                 }
+
+
+
             }
         })
     </script>
