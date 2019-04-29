@@ -20,7 +20,7 @@ type VSM struct {
 	DocumentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
 	ParentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	ChildParentDocumentForwardIndexer *Indexer.ForwardIndexer
-	WordCountContentIndexer           *Indexer.PageRankIndexer
+	TitleWordForwardIndexer           *Indexer.DocumentWordForwardIndexer
 }
 
 // Returns a wordid given a (tokenized) term.
@@ -141,18 +141,28 @@ func (vsm *VSM) ComputeCosineScore(query string) (map[uint64]float64, error) {
 		if wordIDErr != nil {
 			continue
 		}
-		invFileList, _ := vsm.ContentInvertedIndexer.GetInvertedFileFromKey(wordID)
-		fmt.Println(invFileList)
-		for _, invFile := range invFileList {
+		invFileListContent, _ := vsm.ContentInvertedIndexer.GetInvertedFileFromKey(wordID)
+		for _, invFile := range invFileListContent {
 			tf := len(invFile.GetWordPositions())
 
 			maxtf := vsm.MaxTermFreq(invFile.GetPageID())
 			N := vsm.DocumentWordForwardIndexer.GetSize()
-			df := len(invFileList)
+			df := len(invFileListContent)
 			infreq := math.Log2(float64(N) / float64(df))
-			fmt.Printf("for page: %d, tf: %d, maxTf:  %d, N:  %d, df:  %d, infreq: %f, weight: %f\n", invFile.GetPageID(), tf, maxtf, N, df, infreq, float64(tf)/float64(maxtf)*float64(infreq))
 			scores[invFile.GetPageID()] += (float64(tf) / float64(maxtf) * float64(infreq))
 			docLength += (float64(tf) * float64(infreq) * float64(tf) * float64(infreq))
+		}
+
+		invFileListTitle, _ := vsm.TitleInvertedIndexer.GetInvertedFileFromKey(wordID)
+		for _, invFile := range invFileListTitle {
+			tf := len(invFile.GetWordPositions())
+
+			maxtf := vsm.MaxTermFreq(invFile.GetPageID())
+			N := vsm.TitleWordForwardIndexer.GetSize()
+			df := len(invFileListTitle)
+			infreq := math.Log2(float64(N) / float64(df))
+			scores[invFile.GetPageID()] += (float64(tf) / float64(maxtf) * float64(infreq)) * 1.5 // Special consideration
+			docLength += (float64(tf) * float64(infreq) * float64(tf) * float64(infreq)) * 1.5
 		}
 		queryFreq[term]++
 	}
