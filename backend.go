@@ -179,6 +179,18 @@ func (s *server) Initialize() {
 }
 
 func (s *server) Release() {
+
+	s.documentIndexer.Iterate()
+	s.reverseDocumentIndexer.Iterate()
+	s.wordIndexer.Iterate()
+	s.reverseWordIndexer.Iterate()
+	s.pagePropertiesIndexer.Iterate()
+	s.titleInvertedIndexer.Iterate()
+	s.contentInvertedIndexer.Iterate()
+	s.documentWordForwardIndexer.Iterate()
+	s.parentChildDocumentForwardIndexer.Iterate()
+	s.childParentDocumentForwardIndexer.Iterate()
+	s.wordCountContentIndexer.Iterate()
 	s.documentIndexer.Release()
 	s.reverseDocumentIndexer.Release()
 	s.wordIndexer.Release()
@@ -189,6 +201,7 @@ func (s *server) Release() {
 	s.documentWordForwardIndexer.Release()
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
+	s.wordCountContentIndexer.Release()
 }
 
 func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]uint64, error) {
