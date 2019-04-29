@@ -191,6 +191,18 @@ func (s *server) Initialize() {
 }
 
 func (s *server) Release() {
+
+	s.documentIndexer.Iterate()
+	s.reverseDocumentIndexer.Iterate()
+	s.wordIndexer.Iterate()
+	s.reverseWordIndexer.Iterate()
+	s.pagePropertiesIndexer.Iterate()
+	s.titleInvertedIndexer.Iterate()
+	s.contentInvertedIndexer.Iterate()
+	s.documentWordForwardIndexer.Iterate()
+	s.parentChildDocumentForwardIndexer.Iterate()
+	s.childParentDocumentForwardIndexer.Iterate()
+	s.wordCountContentIndexer.Iterate()
 	s.documentIndexer.Release()
 	s.reverseDocumentIndexer.Release()
 	s.wordIndexer.Release()
