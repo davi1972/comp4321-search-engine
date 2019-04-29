@@ -62,3 +62,11 @@ body {
     font-size:11px;
     color:gray;
 }
+
+.result .small-capt {
+    font-size:11px;
+}
+
+.result .parent {
+    font-size:10px;
+}

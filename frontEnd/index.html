@@ -18,14 +18,17 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="search-bar">
-                            <input class="form-control form-control-lg search-input" type="text" v-model="query">
+                            <input v-on:keyup.enter="checkQuery" class="form-control form-control-lg search-input"
+                                type="text" v-model="query">
                             <span class="search-button">
                                 <button v-on:click="checkQuery" class="btn btn-default">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </span>
+                        </div>
+                        <div class="error">
                             <p class="ml-2" v-if="errors">
-                               {{ errors }}
+                                {{ errors }}
                             </p>
                         </div>
                     </div>
@@ -47,18 +50,16 @@
         <div class="container">
             <div class="row search-result">
                 <div class="col-md-8">
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
+                    <div v-if="!results.length">
+                        <h4>Not Found</h4>
                     </div>
+                    <search-result v-else v-for="result in results" v-bind:title="result.title" v-bind:url="result.url"
+                        v-bind:date="result.last_modified" v-bind:key="result.url">
+                        <result-keyword v-bind:keywords="result.keywords"></result-keyword>
+                        <br>
+                        <dropdown-url v-bind:urls="result.parent_urls">Parents</dropdown-url>
+                        <dropdown-url v-if="result.child_urls.length" v-bind:urls="result.child_urls">Children</dropdown-url>
+                    </search-result>
                 </div>
                 <div class="col-md-4">
                     <!--graph-->
@@ -68,6 +69,52 @@
         </div>
     </div>
     <script>
+
+        var result_parent = Vue.component('dropdown-url', {
+            props: {
+                urls: Array
+            },
+            template: `
+            <div class="btn-group">
+                <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <slot></slot>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a v-for="url in urls" class="dropdown-item" href="#">{{url}}</a>
+                </div>
+                </div>
+            `
+        })
+
+        var result_keyword = Vue.component('result-keyword', {
+            props: {
+                keywords: Array
+            },
+            template: `
+                <div>
+                <span v-for="keyword in keywords" class="badge badge-light mr-2">{{keyword.word + " " + keyword.frequency}}</span>
+                </div>
+            `
+        })
+
+        var searchResult = Vue.component('search-result', {
+            props: {
+                title: String,
+                url: String,
+                date: String,
+
+            },
+            template: `
+                <div class="card result">
+                    <div class="card-body">
+                        <p class="title">{{title}}</p>
+                        <p class="url">{{url}}</p>
+                        <p class="date">{{date}}</p>
+                        <slot></slot>
+                    </div>
+                </div>
+            `
+        })
 
         Vue.component('app-user', {
             data: function () {
@@ -87,6 +134,13 @@
       </div>
         `
         });
+        Vue.mixin({
+            data: function () {
+                return {
+                    API_URL: 'http://localhost:8000/'
+                }
+            }
+        });
 
         new Vue({
             el: '#app',
@@ -96,12 +150,13 @@
                 results: []
             },
             methods: {
-                checkQuery: function(e) {
+                checkQuery: function (e) {
 
                     if (!this.query) {
                         this.errors = "Search query cannot be empty";
                     } else {
                         this.errors = '';
+                        this.search(this.query)
                     }
 
                     if (!this.errors) {
@@ -111,8 +166,12 @@
                     e.preventDefault();
                 },
 
-                search: function(query){
-
+                search: function (query) {
+                    this.results = []
+                    axios.get(this.API_URL + "query/" + query)
+                        .then(res => {
+                            this.results = res.data.documents;
+                        })
                 }
 
 
@@ -120,8 +179,11 @@
             }
         })
     </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <style>
-
+    
     </style>
 </body>
 

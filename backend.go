@@ -31,8 +31,8 @@ type server struct {
 	documentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
-	wordCountDocumentIndexer          *Indexer.VSMIndexer
-	// pageRankIndexer				 	  *Indexer.PageRankIndexer
+	wordCountContentIndexer           *Indexer.PageRankIndexer
+	pageRankIndexer					  *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -72,10 +72,10 @@ type QueryResponse struct {
 	Score			 float64			   `json:"score"`
 	Title            string                `json:"title"`
 	URL              string                `json:"url"`
-	LastModifiedDate time.Time             `json:"last-modified"`
+	LastModifiedDate time.Time             `json:"last_modified"`
 	KeyWord          []WordFrequencyString `json:"keywords"`
-	ParentList       []string              `json:"parent-urls"`
-	ChildList        []string              `json:"child-urls"`
+	ParentList       []string              `json:"parent_urls"`
+	ChildList        []string              `json:"child_urls"`
 }
 
 type QueryListResponse struct {
@@ -161,17 +161,17 @@ func (s *server) Initialize() {
 	if childParentDocumentForwardIndexerErr != nil {
 		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
 	}
-	s.wordCountDocumentIndexer = &Indexer.VSMIndexer{}
-	wordCountDocumentIndexerErr := s.wordCountDocumentIndexer.Initialize(wd + "/db/wordCountDocumentIndexer")
-	if wordCountDocumentIndexerErr != nil {
-		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountDocumentIndexerErr)
+	s.wordCountContentIndexer = &Indexer.PageRankIndexer{}
+	wordCountContentIndexerErr := s.wordCountContentIndexer.Initialize(wd + "/db/wordCountContentIndexer")
+	if wordCountContentIndexerErr != nil {
+		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountContentIndexerErr)
 	}
 
-	// s.pageRankIndexer = &Indexer.PageRankIndexer{}
-	// pageRankIndexerErr := s.pageRankIndexer.Initialize(wd + "/db/pageRankIndex")
-	// if pageRankIndexerErr != nil {
-	// 	fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
-	// }
+	s.pageRankIndexer = &Indexer.PageRankIndexer{}
+	pageRankIndexerErr := s.pageRankIndexer.Initialize(wd + "/db/pageRankIndex")
+	if pageRankIndexerErr != nil {
+		fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
+	}
 
 
 	s.router = mux.NewRouter()
@@ -186,7 +186,7 @@ func (s *server) Initialize() {
 		DocumentWordForwardIndexer:        s.documentWordForwardIndexer,
 		ParentChildDocumentForwardIndexer: s.parentChildDocumentForwardIndexer,
 		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
-		WordCountDocumentIndexer:          s.wordCountDocumentIndexer,
+		WordCountContentIndexer:           s.wordCountContentIndexer,
 	}
 }
 
@@ -201,7 +201,8 @@ func (s *server) Release() {
 	s.documentWordForwardIndexer.Release()
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
-	// s.pageRankIndexer.Release()
+	s.pageRankIndexer.Release()
+	s.wordCountContentIndexer.Release()
 }
 
 func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]uint64, error) {
@@ -296,7 +297,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
+		pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
 
 		if(err!=nil){
 			fmt.Println("error retrieving page rank value", err)
@@ -304,9 +305,9 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 
 		doc := &QueryResponse{}
-		// doc.PageRankScore = pageRankScore
-		doc.Score = score
-		// doc.Score = prWeight*pageRankScore + (1-prWeight)*score
+		doc.PageRankScore = pageRankScore
+		doc.VSMScore = score
+		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
 		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(i)
 		doc.Title = pageProps.GetTitle()
 		doc.URL = pageProps.GetUrl()
@@ -342,6 +343,8 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Internal Server Error! Details: " + jsonErr.Error()))
 	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResult)
 
 	elapsed = time.Since(start)
