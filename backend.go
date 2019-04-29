@@ -31,7 +31,7 @@ type server struct {
 	documentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
-	wordCountDocumentIndexer          *Indexer.VSMIndexer
+	wordCountContentIndexer           *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -157,10 +157,10 @@ func (s *server) Initialize() {
 	if childParentDocumentForwardIndexerErr != nil {
 		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
 	}
-	s.wordCountDocumentIndexer = &Indexer.VSMIndexer{}
-	wordCountDocumentIndexerErr := s.wordCountDocumentIndexer.Initialize(wd + "/db/wordCountDocumentIndexer")
-	if wordCountDocumentIndexerErr != nil {
-		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountDocumentIndexerErr)
+	s.wordCountContentIndexer = &Indexer.PageRankIndexer{}
+	wordCountContentIndexerErr := s.wordCountContentIndexer.Initialize(wd + "/db/wordCountContentIndexer")
+	if wordCountContentIndexerErr != nil {
+		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountContentIndexerErr)
 	}
 	s.router = mux.NewRouter()
 	s.vsm = &vsm.VSM{
@@ -174,7 +174,7 @@ func (s *server) Initialize() {
 		DocumentWordForwardIndexer:        s.documentWordForwardIndexer,
 		ParentChildDocumentForwardIndexer: s.parentChildDocumentForwardIndexer,
 		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
-		WordCountDocumentIndexer:          s.wordCountDocumentIndexer,
+		WordCountContentIndexer:           s.wordCountContentIndexer,
 	}
 }
 

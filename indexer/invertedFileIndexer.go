@@ -27,6 +27,14 @@ func (invertedFile *InvertedFile) AddWordPositions(pos uint64) {
 	invertedFile.wordPositions = append(invertedFile.wordPositions, pos)
 }
 
+func (invertedFile *InvertedFile) GetWordPositions() []uint64 {
+	return invertedFile.wordPositions
+}
+
+func (invertedFile *InvertedFile) GetPageID() uint64 {
+	return invertedFile.pageID
+}
+
 func (invertedFile *InvertedFile) Same(compared *InvertedFile) bool {
 	if invertedFile.pageID != compared.pageID {
 		return false
