@@ -101,7 +101,7 @@
                         strokeColor: "#29B5FF",
                         width: 100,
                         svgWigth: 960,
-                        svgHeight: 600
+                        svgHeight: 400
                     }
                 };
             },
@@ -178,21 +178,21 @@
                             .on('mouseover', mouseOver(.2, d3.select(this).enter().append('g')))
                             // Hide the tooltip when "mouseout"
                             .on('mouseout', tooltip.hide)
-                            // .call(d3.drag()
-                            //     .on("start", function dragstarted(d) {
-                            //         if (!d3.event.active) that.simulation.alphaTarget(0.3).restart();
-                            //         d.fx = d.x;
-                            //         d.fy = d.y;
-                            //     })
-                            //     .on("drag", function dragged(d) {
-                            //         d.fx = d3.event.x;
-                            //         d.fy = d3.event.y;
-                            //     })
-                            //     .on("end", function dragended(d) {
-                            //         if (!d3.event.active) that.simulation.alphaTarget(0);
-                            //         d.fx = null;
-                            //         d.fy = null;
-                            //     }));
+                            .call(d3.drag()
+                                .on("start", function dragstarted(d) {
+                                    if (!d3.event.active) that.simulation.alphaTarget(0.3).restart();
+                                    d.fx = d.x;
+                                    d.fy = d.y;
+                                })
+                                .on("drag", function dragged(d) {
+                                    d.fx = d3.event.x;
+                                    d.fy = d3.event.y;
+                                })
+                                .on("end", function dragended(d) {
+                                    if (!d3.event.active) that.simulation.alphaTarget(0);
+                                    d.fx = null;
+                                    d.fy = null;
+                                }));
                     }
                 },
                 links: function () {

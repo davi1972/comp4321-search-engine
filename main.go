@@ -29,8 +29,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	// rootPage := "https://www.cse.ust.hk"
-	rootPage := "https://apartemen.win/comp4321/page1.html"
+	rootPage := "https://www.cse.ust.hk"
+	//rootPage := "https://apartemen.win/comp4321/page1.html"
 
 	tokenizer.LoadStopWords()
 
@@ -114,6 +114,14 @@ func main() {
 	defer childParentDocumentForwardIndexer.Backup()
 	defer childParentDocumentForwardIndexer.Release()
 
+	wordCountDocumentIndexer := &Indexer.VSMIndexer{}
+	wordCountDocumentIndexerErr := wordCountDocumentIndexer.Initialize(wd + "/db/wordCountDocumentIndexer")
+	if wordCountDocumentIndexerErr != nil {
+		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountDocumentIndexerErr)
+	}
+	defer wordCountDocumentIndexer.Backup()
+	defer wordCountDocumentIndexer.Release()
+
 	pages := make([]pageMap, 0)
 	maxDepth := 3
 	crawler := colly.NewCollector(
@@ -179,6 +187,9 @@ func main() {
 
 			// Preprocess page text
 			content := tokenizer.Tokenize(text)
+
+			// Store length of page in wordCountIndexer
+			wordCountDocumentIndexer.AddKeyToIndex(id, uint64(len(content)))
 
 			processedTitle := tokenizer.Tokenize(title)
 
@@ -296,7 +307,7 @@ func main() {
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
 	// Iterator to see contents of db
-	documentIndexer.Iterate()
+	// documentIndexer.Iterate()
 	// reverseDocumentIndexer.Iterate()
 	// contentInvertedIndexer.Iterate()
 	// wordIndexer.Iterate()
@@ -305,4 +316,5 @@ func main() {
 	// documentWordForwardIndexer.Iterate()
 	// parentChildDocumentForwardIndexer.Iterate()
 	// childParentDocumentForwardIndexer.Iterate()
+	wordCountDocumentIndexer.Iterate()
 }

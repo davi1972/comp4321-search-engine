@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
 	"strconv"
 	"syscall"
 	"time"
@@ -29,6 +31,7 @@ type server struct {
 	documentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
+	wordCountDocumentIndexer          *Indexer.VSMIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -57,19 +60,19 @@ type WordListResponse struct {
 	WordList []string `json:"words"`
 }
 
-type KeywordsFrequency struct {
-	Keyword   string
-	Frequency uint64
+type WordFrequencyString struct {
+	Word      string `json:"word"`
+	Frequency uint64 `json:"frequency"`
 }
 
 type QueryResponse struct {
-	Score            float64             `json:"score"`
-	Title            string              `json:"title"`
-	URL              string              `json:"url"`
-	LastModifiedDate time.Time           `json:"last-modified"`
-	KeyWord          []KeywordsFrequency `json:"keywords"`
-	ParentList       []string            `json:"parent-urls"`
-	ChildList        []string            `json:"child-urls"`
+	Score            float64               `json:"score"`
+	Title            string                `json:"title"`
+	URL              string                `json:"url"`
+	LastModifiedDate time.Time             `json:"last-modified"`
+	KeyWord          []WordFrequencyString `json:"keywords"`
+	ParentList       []string              `json:"parent-urls"`
+	ChildList        []string              `json:"child-urls"`
 }
 
 type QueryListResponse struct {
@@ -90,7 +93,6 @@ func main() {
 		S.Release()
 		os.Exit(1)
 	}()
-	S.parentChildDocumentForwardIndexer.Iterate()
 	http.ListenAndServe("localhost:8000", S.router)
 }
 
@@ -155,7 +157,11 @@ func (s *server) Initialize() {
 	if childParentDocumentForwardIndexerErr != nil {
 		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
 	}
-
+	s.wordCountDocumentIndexer = &Indexer.VSMIndexer{}
+	wordCountDocumentIndexerErr := s.wordCountDocumentIndexer.Initialize(wd + "/db/wordCountDocumentIndexer")
+	if wordCountDocumentIndexerErr != nil {
+		fmt.Printf("error when initializing wordcountIndexer: %s\n", wordCountDocumentIndexerErr)
+	}
 	s.router = mux.NewRouter()
 	s.vsm = &vsm.VSM{
 		DocumentIndexer:                   s.documentIndexer,
@@ -168,6 +174,7 @@ func (s *server) Initialize() {
 		DocumentWordForwardIndexer:        s.documentWordForwardIndexer,
 		ParentChildDocumentForwardIndexer: s.parentChildDocumentForwardIndexer,
 		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
+		WordCountDocumentIndexer:          s.wordCountDocumentIndexer,
 	}
 }
 
@@ -259,33 +266,51 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	query := vars["queryString"]
 	resp := &QueryListResponse{}
+
+	start := time.Now()
 	cosScore, err := S.vsm.ComputeCosineScore(query)
+	elapsed := time.Since(start)
+	log.Printf("Cosine took %s", elapsed)
+	start = time.Now()
+
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("400 - Invalid parameter value! Details: " + err.Error()))
 	}
-	docList, _ := S.documentWordForwardIndexer.GetDocIDList()
 	for i, score := range cosScore {
+		if score == 0 {
+			continue
+		}
 		doc := &QueryResponse{}
 		doc.Score = score
-		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(docList[i])
+		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(i)
 		doc.Title = pageProps.GetTitle()
 		doc.URL = pageProps.GetUrl()
-		//doc.LastModifiedDate = pageProps.GetDate()
-		childList, _ := S.parentChildDocumentForwardIndexer.GetIdListFromKey(docList[i])
+		doc.LastModifiedDate = pageProps.GetDate()
+		childList, _ := S.parentChildDocumentForwardIndexer.GetIdListFromKey(i)
 		for _, childID := range childList {
 			str, err := S.reverseDocumentIndexer.GetValueFromKey(childID)
 			if err == nil {
 				doc.ChildList = append(doc.ChildList, str)
 			}
 		}
-		parentList, _ := S.childParentDocumentForwardIndexer.GetIdListFromKey(docList[i])
+		parentList, _ := S.childParentDocumentForwardIndexer.GetIdListFromKey(i)
 		for _, parentID := range parentList {
 			str, err := S.reverseDocumentIndexer.GetValueFromKey(parentID)
 			if err == nil {
 				doc.ParentList = append(doc.ParentList, str)
 			}
 		}
+
+		wordFreq, _ := S.documentWordForwardIndexer.GetWordFrequencyListFromKey(i)
+		sort.Sort(Indexer.WordFrequencySorter(wordFreq))
+		for _, wordF := range wordFreq[:5] {
+			wordStr, wordErr := S.reverseWordIndexer.GetValueFromKey(wordF.GetID())
+			if wordErr == nil {
+				doc.KeyWord = append(doc.KeyWord, WordFrequencyString{Word: wordStr, Frequency: wordF.GetFrequency()})
+			}
+		}
+
 		resp.List = append(resp.List, *doc)
 	}
 	jsonResult, jsonErr := json.Marshal(resp)
@@ -294,6 +319,9 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("500 - Internal Server Error! Details: " + jsonErr.Error()))
 	}
 	w.Write(jsonResult)
+
+	elapsed = time.Since(start)
+	log.Printf("Forming response took %s", elapsed)
 }
 
 func (s *server) routes() {

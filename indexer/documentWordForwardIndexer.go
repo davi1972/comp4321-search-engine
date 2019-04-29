@@ -15,16 +15,22 @@ type DocumentWordForwardIndexer struct {
 }
 
 type WordFrequency struct {
-	wordID    uint64
-	frequency uint64
+	WordID    uint64
+	Frequency uint64
 }
 
+type WordFrequencySorter []WordFrequency
+
+func (a WordFrequencySorter) Len() int           { return len(a) }
+func (a WordFrequencySorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a WordFrequencySorter) Less(i, j int) bool { return a[i].Frequency > a[j].Frequency }
+
 func (w *WordFrequency) GetID() uint64 {
-	return w.wordID
+	return w.WordID
 }
 
 func (w *WordFrequency) GetFrequency() uint64 {
-	return w.frequency
+	return w.Frequency
 }
 
 func CreateWordFrequency(id uint64, f uint64) WordFrequency {
@@ -32,7 +38,7 @@ func CreateWordFrequency(id uint64, f uint64) WordFrequency {
 }
 
 func wordFrequencyToString(word *WordFrequency) string {
-	return strconv.Itoa(int(word.wordID)) + " " + strconv.Itoa(int(word.frequency))
+	return strconv.Itoa(int(word.WordID)) + " " + strconv.Itoa(int(word.Frequency))
 }
 
 func stringToWordFrequency(str string) WordFrequency {
@@ -40,10 +46,6 @@ func stringToWordFrequency(str string) WordFrequency {
 	id, _ := strconv.Atoi(splitString[0])
 	freq, _ := strconv.Atoi(splitString[1])
 	return WordFrequency{uint64(id), uint64(freq)}
-}
-
-func (w *WordFrequency) GetWordID() uint64 {
-	return w.wordID
 }
 
 func (documentWordForwardIndexer *DocumentWordForwardIndexer) Initialize(path string) error {

@@ -3,6 +3,7 @@ package vsm
 import (
 	"fmt"
 	"math"
+	"time"
 
 	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
@@ -20,6 +21,7 @@ type VSM struct {
 	DocumentWordForwardIndexer        *Indexer.DocumentWordForwardIndexer
 	ParentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	ChildParentDocumentForwardIndexer *Indexer.ForwardIndexer
+	WordCountDocumentIndexer          *Indexer.VSMIndexer
 }
 
 // Returns a wordid given a (tokenized) term.
@@ -101,7 +103,8 @@ func (vsm *VSM) CosSimilarity(query string, documentID uint64) float64 {
 	terms := tokenizer.Tokenize(query)
 	termWeights := make(map[string]float64)
 	queryFreq := make(map[string]int)
-
+	fmt.Println(queryFreq)
+	fmt.Println(termWeights)
 	for i := range terms {
 		termWeights[terms[i]] = vsm.ComputeTermWeight(terms[i], documentID)
 		queryFreq[terms[i]]++
@@ -137,9 +140,8 @@ func (vsm *VSM) ComputeCosineScore(query string) (map[uint64]float64, error) {
 	}
 	//fmt.Printf("\n\nlen(docIDList): %d\n\n", len(docIDList))
 
-	var length float64 // length of document
 	for i := 0; i < len(docIDList); i++ {
-		length = 0
+		start := time.Now()
 		wordFreqList, err2 := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(docIDList[i])
 		if err2 != nil {
 			fmt.Errorf("Error getting word frequency list: %s", err2)
@@ -147,11 +149,13 @@ func (vsm *VSM) ComputeCosineScore(query string) (map[uint64]float64, error) {
 		}
 		if len(wordFreqList) > 0 {
 			//fmt.Printf("wordFreqList len: %d, i = %d\n", len(wordFreqList), i)
-			for j := 0; j < len(wordFreqList); j++ {
-				length += float64(wordFreqList[j].GetFrequency())
+			length, wordCountErr := vsm.WordCountDocumentIndexer.GetValueFromKey(docIDList[i])
+			if wordCountErr != nil {
+				fmt.Errorf("Error getting word count: %s", wordCountErr)
 			}
-			scores[docIDList[i]] = vsm.CosSimilarity(query, docIDList[i]) / length
+			scores[docIDList[i]] = vsm.CosSimilarity(query, docIDList[i]) / float64(length)
 		}
+		fmt.Printf("doc: %d, time elapsed %s", i, time.Since(start))
 		//scores[docIDList[i]] = vsm.CosSimilarity(query, docList[i].GetID()) / length
 	}
 
