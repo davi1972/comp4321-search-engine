@@ -285,6 +285,8 @@ func wordListHandler(w http.ResponseWriter, r *http.Request) {
 	resp := &WordListResponse{}
 	resp.WordList = S.wordIndexer.AllValue()
 	jsonResult, _ := json.Marshal(resp)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResult)
 }
 

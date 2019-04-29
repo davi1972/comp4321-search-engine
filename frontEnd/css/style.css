@@ -47,15 +47,19 @@ body {
 }
 
 .result p{
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
+
 .result .title {
+    color:black;
     font-size:20px;
 }
 
 .result .url {
+    color: gray;
     font-size:12px;
+    text-decoration: none;
 }
 
 .result .date {
@@ -69,4 +73,8 @@ body {
 
 .result .parent {
     font-size:10px;
+}
+
+.keyword-btn{
+    float:right;
 }
