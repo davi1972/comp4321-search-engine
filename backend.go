@@ -33,7 +33,7 @@ type server struct {
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
 	wordCountContentIndexer           *Indexer.PageRankIndexer
-	pageRankIndexer					  *Indexer.PageRankIndexer
+	pageRankIndexer                   *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -69,8 +69,8 @@ type WordFrequencyString struct {
 
 type QueryResponse struct {
 	VSMScore         float64               `json:"vsmscore"`
-	PageRankScore	 float64			   `json:"pagerankscore"`
-	Score			 float64			   `json:"score"`
+	PageRankScore    float64               `json:"pagerankscore"`
+	Score            float64               `json:"score"`
 	Title            string                `json:"title"`
 	URL              string                `json:"url"`
 	LastModifiedDate time.Time             `json:"last_modified"`
@@ -174,7 +174,6 @@ func (s *server) Initialize() {
 	if pageRankIndexerErr != nil {
 		fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
 	}
-
 
 	s.router = mux.NewRouter()
 	s.vsm = &vsm.VSM{
@@ -313,10 +312,9 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 		pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
 
-		if(err!=nil){
+		if err != nil {
 			fmt.Println("error retrieving page rank value", err)
 		}
-
 
 		doc := &QueryResponse{}
 		doc.PageRankScore = pageRankScore
