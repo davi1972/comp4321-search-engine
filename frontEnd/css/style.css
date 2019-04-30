@@ -56,6 +56,12 @@ body {
     font-size:20px;
 }
 
+.result .score {
+    margin-left:8px;
+    color: gray;
+    font-size:10px;
+}
+
 .result .url {
     color: gray;
     font-size:12px;
@@ -78,3 +84,21 @@ body {
 .keyword-btn{
     float:right;
 }
+
+path.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 1.5px;
+  }
+  
+  circle {
+    fill: #ccc;
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+  
+  text {
+    fill: #000;
+    font: 10px sans-serif;
+    pointer-events: none;
+  }
