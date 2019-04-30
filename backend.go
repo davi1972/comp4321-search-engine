@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -359,12 +360,17 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 		pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
 
+		if math.IsInf(pageRankScore, 1) {
+			pageRankScore = 0
+		}
+
 		if err != nil {
 			fmt.Println("error retrieving page rank value", err)
 		}
 
 		doc := &QueryResponse{}
 		doc.PageRankScore = pageRankScore
+
 		doc.VSMScore = score
 		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
 		// add boost to phrases!
@@ -412,7 +418,6 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResult)
-
 	elapsed = time.Since(start)
 	log.Printf("Forming response took %s", elapsed)
 }

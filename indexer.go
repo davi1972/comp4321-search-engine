@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os/signal"
+	"syscall"
+
 	"github.com/gocolly/colly"
 
 	//"github.com/gocolly/colly/debug"
@@ -32,7 +35,7 @@ func main() {
 
 	rootPage := "https://www.cse.ust.hk"
 	//rootPage := "https://apartemen.win/comp4321/page1.html"
-	maxDepth := 3
+	maxDepth := 2
 
 	tokenizer.LoadStopWords()
 
@@ -146,6 +149,26 @@ func main() {
 		colly.Async(true),
 	)
 
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		// After finished, iterate over all pages to get child->parent relation
+		for _, page := range pages {
+			page.parent.Init()
+			for _, v := range pages {
+				if _, contains := v.children.Get(page.id); contains {
+					page.parent.Set(v.id, nil)
+				}
+			}
+			childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
+		}
+
+		// After everything is done, compute pagerank
+		pageRankCalculator.ProcessPageRank()
+
+		os.Exit(1)
+	}()
 	// Limit the maximum parallelism to 2
 	// This is necessary if the goroutines are dynamically
 	// created to control the limit of simultaneous requests.
@@ -323,19 +346,6 @@ func main() {
 	crawler.Visit(rootPage)
 
 	crawler.Wait()
-	// After finished, iterate over all pages to get child->parent relation
-	for _, page := range pages {
-		page.parent.Init()
-		for _, v := range pages {
-			if _, contains := v.children.Get(page.id); contains {
-				page.parent.Set(v.id, nil)
-			}
-		}
-		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
-	}
-
-	// After everything is done, compute pagerank
-	pageRankCalculator.ProcessPageRank()
 
 	// Iterator to see contents of db
 	//documentIndexer.Iterate()
