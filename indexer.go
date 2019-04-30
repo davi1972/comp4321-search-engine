@@ -14,6 +14,7 @@ import (
 
 	"github.com/davi1972/comp4321-search-engine/concurrentMap"
 	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	"github.com/davi1972/comp4321-search-engine/pageRank"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 )
 
@@ -31,9 +32,11 @@ func main() {
 
 	//rootPage := "https://www.cse.ust.hk"
 	rootPage := "https://apartemen.win/comp4321/page1.html"
+	maxDepth := 3
 
 	tokenizer.LoadStopWords()
 
+	// Initialize Databases Client
 	documentIndexer := &Indexer.MappingIndexer{}
 	docErr := documentIndexer.Initialize(wd + "/db/documentIndex")
 	if docErr != nil {
@@ -122,8 +125,21 @@ func main() {
 	defer childParentDocumentForwardIndexer.Backup()
 	defer childParentDocumentForwardIndexer.Release()
 
+	pageRankIndexer := &Indexer.PageRankIndexer{}
+	pageRankIndexerErr := pageRankIndexer.Initialize(wd + "/db/pageRankIndex")
+	if pageRankIndexerErr != nil {
+		fmt.Printf("error when initializing pageRank Indexer: %s\n", pageRankIndexerErr)
+	}
+	defer pageRankIndexer.Backup()
+	defer pageRankIndexer.Release()
+
+	// Make pageRank Object
+	pageRankCalculator := &pageRank.PageRank{}
+	pageRankCalculator.Initialize(documentIndexer, reverseDocumentIndexer, childParentDocumentForwardIndexer, parentChildDocumentForwardIndexer, pageRankIndexer)
+
+	// Make a map of pages to store get pages
+
 	pages := make([]pageMap, 0)
-	maxDepth := 3
 	crawler := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
 		// colly.Debugger(&debug.LogDebugger{}),
@@ -317,8 +333,12 @@ func main() {
 		}
 		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
 	}
+
+	// After everything is done, compute pagerank
+	pageRankCalculator.ProcessPageRank()
+
 	// Iterator to see contents of db
-	// documentIndexer.Iterate()
+	//documentIndexer.Iterate()
 	// reverseDocumentIndexer.Iterate()
 	// contentInvertedIndexer.Iterate()
 	// wordIndexer.Iterate()
@@ -327,5 +347,5 @@ func main() {
 	// documentWordForwardIndexer.Iterate()
 	// parentChildDocumentForwardIndexer.Iterate()
 	// childParentDocumentForwardIndexer.Iterate()
-	titleWordForwardIndexer.Iterate()
+	// titleWordForwardIndexer.Iterate()
 }

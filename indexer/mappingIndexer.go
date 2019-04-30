@@ -48,6 +48,28 @@ func (mappingIndexer *MappingIndexer) Backup() error {
 	return err
 }
 
+func (mappingIndexer *MappingIndexer) Iterate() {
+	fmt.Println("Iterating over Mapping Index")
+	_ = mappingIndexer.db.View(func(txn *badger.Txn) error {
+		opts := badger.DefaultIteratorOptions
+		opts.PrefetchSize = 10
+		it := txn.NewIterator(opts)
+		defer it.Close()
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			k := item.Key()
+			err := item.Value(func(v []byte) error {
+				fmt.Printf("key=%s, value=%d\n", k, byteToUint64(v))
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 func (mappingIndexer *MappingIndexer) All() ([]uint64, error) {
 
 	var pageIds []uint64
@@ -69,7 +91,6 @@ func (mappingIndexer *MappingIndexer) All() ([]uint64, error) {
 			}
 
 			pageIds = append(pageIds, p)
-
 		}
 		return nil
 	})
@@ -116,28 +137,6 @@ func (mappingIndexer *MappingIndexer) GetValueFromKey(key string) (uint64, error
 		err = fmt.Errorf("Error in getting Value from Key: %s", err)
 	}
 	return result, err
-}
-
-func (mappingIndexer *MappingIndexer) Iterate() {
-	fmt.Println("Iterating over Mapping Index")
-	_ = mappingIndexer.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchSize = 10
-		it := txn.NewIterator(opts)
-		defer it.Close()
-		for it.Rewind(); it.Valid(); it.Next() {
-			item := it.Item()
-			k := item.Key()
-			err := item.Value(func(v []byte) error {
-				fmt.Printf("key=%s, value=%d\n", k, byteToUint64(v))
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
 }
 
 func (mappingIndexer *MappingIndexer) AllValue() []string {

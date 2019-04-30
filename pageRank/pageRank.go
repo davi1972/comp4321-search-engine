@@ -1,67 +1,43 @@
-package main
+package pageRank
 
 import (
-	"os"
-	"path/filepath"
 	"fmt"
 	"math"
+
 	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 )
+
+type PageRank struct {
+	parents                           map[uint64][]uint64
+	pageRanks                         map[uint64]float64
+	numOutlinks                       map[uint64]int
+	documentIndexer                   *Indexer.MappingIndexer
+	reverseDocumentIndexer            *Indexer.ReverseMappingIndexer
+	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
+	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
+	pageRankIndexer                   *Indexer.PageRankIndexer
+}
+
 var i = 1
-var parents = make(map[uint64][]uint64)
 
-var pageRanks = make(map[uint64]float64)
+func (pageRank *PageRank) Initialize(mapping *Indexer.MappingIndexer, reverseMapping *Indexer.ReverseMappingIndexer, childParent *Indexer.ForwardIndexer, parentChild *Indexer.ForwardIndexer, page *Indexer.PageRankIndexer) {
+	pageRank.parents = make(map[uint64][]uint64)
+	pageRank.pageRanks = make(map[uint64]float64)
+	pageRank.numOutlinks = make(map[uint64]int)
+	pageRank.documentIndexer = mapping
+	pageRank.reverseDocumentIndexer = reverseMapping
+	pageRank.parentChildDocumentForwardIndexer = parentChild
+	pageRank.childParentDocumentForwardIndexer = childParent
+	pageRank.pageRankIndexer = page
+}
 
-var numOutlinks = make(map[uint64]int)
+func (pageRank *PageRank) ProcessPageRank() {
 
-func main() {
+	pageIds, err := pageRank.documentIndexer.All()
 
-	wd, _ := os.Getwd()
-	parent := filepath.Dir(wd)
-	documentIndexer := &Indexer.MappingIndexer{}
-	docErr := documentIndexer.Initialize(parent + "/db/documentIndex")
-	if docErr != nil {
-		fmt.Printf("error when initializing document indexer: %s\n", docErr)
-	}
-	defer documentIndexer.Backup()
-	defer documentIndexer.Release()
+	pageRank.documentIndexer.Iterate()
 
-	reverseDocumentIndexer := &Indexer.ReverseMappingIndexer{}
-	reverseDocumentIndexerErr := reverseDocumentIndexer.Initialize(parent + "/db/reverseDocumentIndexer")
-	if reverseDocumentIndexerErr != nil {
-		fmt.Printf("error when initializing reverse document indexer: %s\n", reverseDocumentIndexerErr)
-	}
-	defer reverseDocumentIndexer.Backup()
-	defer reverseDocumentIndexer.Release()
-
-	parentChildDocumentForwardIndexer := &Indexer.ForwardIndexer{}
-	parentChildDocumentForwardIndexerErr := parentChildDocumentForwardIndexer.Initialize(parent + "/db/parentChildDocumentForwardIndex")
-	if parentChildDocumentForwardIndexerErr != nil {
-		fmt.Printf("error when initializing parentDocument -> childDocument forward Indexer: %s\n", parentChildDocumentForwardIndexerErr)
-	}
-	defer parentChildDocumentForwardIndexer.Backup()
-	defer parentChildDocumentForwardIndexer.Release()
-
-	childParentDocumentForwardIndexer := &Indexer.ForwardIndexer{}
-	childParentDocumentForwardIndexerErr := childParentDocumentForwardIndexer.Initialize(parent + "/db/childParentDocumentForwardIndex")
-	if childParentDocumentForwardIndexerErr != nil {
-		fmt.Printf("error when initializing childDocument -> parentDocument forward Indexer: %s\n", childParentDocumentForwardIndexerErr)
-	}
-	defer childParentDocumentForwardIndexer.Backup()
-	defer childParentDocumentForwardIndexer.Release()
-
-	pageRankIndexer := &Indexer.PageRankIndexer{}
-	pageRankIndexerErr := pageRankIndexer.Initialize(parent + "/db/pageRankIndex")
-	if pageRankIndexerErr != nil {
-		fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
-	}
-	defer pageRankIndexer.Backup()
-	defer pageRankIndexer.Release()
-
-
-	pageIds, err := documentIndexer.All()
-
-	if (err != nil){
+	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("Page IDs")
@@ -69,61 +45,57 @@ func main() {
 
 	for _, id := range pageIds {
 
-		_, err := reverseDocumentIndexer.GetValueFromKey(id)
+		_, err := pageRank.reverseDocumentIndexer.GetValueFromKey(id)
 
-		if(err!=nil){
+		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		pageRanks[id] = 1
+		pageRank.pageRanks[id] = 1
 
-		inlinks, err := childParentDocumentForwardIndexer.GetIdListFromKey(id)
-		
-		if(len(inlinks)==0){
+		inlinks, err := pageRank.childParentDocumentForwardIndexer.GetIdListFromKey(id)
+
+		if len(inlinks) == 0 {
 			continue
 		}
 
-		if (err != nil){
+		if err != nil {
 			fmt.Printf("Error getting parent from id: %s", err)
 		}
 
-		parents[id] = inlinks
+		pageRank.parents[id] = inlinks
 
-		children, _ := parentChildDocumentForwardIndexer.GetIdListFromKey(id)
+		children, _ := pageRank.parentChildDocumentForwardIndexer.GetIdListFromKey(id)
 
-		if(len(children)==0){
+		if len(children) == 0 {
 			continue
 		} else {
-			numOutlinks[id] = len(children)
+			pageRank.numOutlinks[id] = len(children)
 		}
 
 	}
 
-	calculatePageRank(0.85, 0.0001)
+	pageRank.calculatePageRank(0.85, 0.0001)
 
-	for k,v := range pageRanks {
-		
-		err := pageRankIndexer.AddKeyToIndex(k, v)
+	for k, v := range pageRank.pageRanks {
 
-		if(err != nil){
+		err := pageRank.pageRankIndexer.AddKeyToIndex(k, v)
+
+		if err != nil {
 			fmt.Printf("Error inserting pagerank value: %s", err)
 		}
 
 	}
 
-	fmt.Println("Iterating Page Rank Values")
-	pageRankIndexer.Iterate()
-
-
 }
 
-func calculatePageRank(damping float64, threshold float64){
+func (pageRank *PageRank) calculatePageRank(damping float64, threshold float64) {
 	fmt.Println("Iteration:", i)
-	fmt.Println(pageRanks)
+	fmt.Println(pageRank.pageRanks)
 	oldRanks := make(map[uint64]float64)
 
-	for key, value := range pageRanks {
+	for key, value := range pageRank.pageRanks {
 		oldRanks[key] = value
 	}
 
@@ -131,32 +103,32 @@ func calculatePageRank(damping float64, threshold float64){
 
 	for key, value := range oldRanks {
 
-		myParents := parents[key]
+		myParents := pageRank.parents[key]
 
 		var sum = 0.0
 
-		if(len(myParents)!=0){
+		if len(myParents) != 0 {
 
 			for _, id := range myParents {
-				parentsChild := float64(numOutlinks[id])
-				sum += oldRanks[id]/parentsChild
+				parentsChild := float64(pageRank.numOutlinks[id])
+				sum += oldRanks[id] / parentsChild
 			}
 
 		}
 
-		pr := (1-damping) + damping*sum
+		pr := (1 - damping) + damping*sum
 
-		pageRanks[key] = pr
+		pageRank.pageRanks[key] = pr
 
-		if(math.Abs(pr - value) > threshold){
+		if math.Abs(pr-value) > threshold {
 			stop = false
 		}
 	}
 
 	i++
 
-	if(!stop){
-		calculatePageRank(damping, threshold)
+	if !stop {
+		pageRank.calculatePageRank(damping, threshold)
 	} else {
 		return
 	}

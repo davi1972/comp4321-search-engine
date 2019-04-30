@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"sort"
 	"strconv"
 	"syscall"
@@ -203,7 +204,6 @@ func (s *server) Release() {
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
 	s.pageRankIndexer.Release()
-	s.wordCountContentIndexer.Release()
 	s.titleWordForwardIndexer.Release()
 }
 
@@ -293,6 +293,11 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	query := vars["queryString"]
+
+	// Extract phrases first before doing everything else
+	regex, _ := regexp.Compile(`("([^"]|"")*")`)
+	fmt.Println(regex.FindAllString(query, -1))
+
 	resp := &QueryListResponse{}
 
 	start := time.Now()

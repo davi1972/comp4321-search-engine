@@ -4,7 +4,7 @@ import (
 	"math"
 
 	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
-	Indexer "../indexer"
+	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 )
 
