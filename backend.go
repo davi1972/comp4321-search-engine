@@ -13,6 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/davi1972/comp4321-search-engine/boolsearch"
+	"github.com/davi1972/comp4321-search-engine/phrasalSearch"
 	"github.com/davi1972/comp4321-search-engine/vsm"
 	"github.com/dgraph-io/badger"
 
@@ -37,6 +39,8 @@ type server struct {
 	pageRankIndexer                   *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
+	bs 									*boolsearch.BoolSearch
+	pls                               *phrasalSearch.PhrasalSearch
 }
 
 type Edge struct {
@@ -190,6 +194,20 @@ func (s *server) Initialize() {
 		ChildParentDocumentForwardIndexer: s.childParentDocumentForwardIndexer,
 		TitleWordForwardIndexer:           s.titleWordForwardIndexer,
 	}
+
+	s.bs := &boolsearch.BoolSearch{
+		ContentInvertedIndexer: contentInvertedIndexer,
+		Vsm:                    v,
+	}
+
+	s.pls := &phrasalSearch.PhrasalSearch{
+		TitleInvertedIndexer:    titleInvertedIndexer,
+		ContentInvertedIndexer:  contentInvertedIndexer,
+		TitleWordForwardIndexer: titleWordForwardIndexer,
+		V:                       v,
+		Bs:                      s.bs,
+	}
+
 }
 
 func (s *server) Release() {
@@ -296,7 +314,11 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Extract phrases first before doing everything else
 	regex, _ := regexp.Compile(`("([^"]|"")*")`)
-	fmt.Println(regex.FindAllString(query, -1))
+	phraseList := regex.FindAllString(query, -1)
+	boostedDocsIDList := make([]uint64)
+	for _, phrase := range phraseList {
+		boostedDocsIDList = append(boostedDocsIDList S.pls)
+	}
 
 	resp := &QueryListResponse{}
 

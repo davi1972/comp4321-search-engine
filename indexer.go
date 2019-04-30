@@ -290,8 +290,8 @@ func main() {
 		links := e.ChildAttrs("a[href]", "href")
 		for _, url := range links {
 			url = e.Request.AbsoluteURL(url)
-			wg.Add(1)
 			go func(url string) {
+				wg.Add(1)
 				defer wg.Done()
 				resp, err := http.Get(url)
 				if err != nil || resp.StatusCode != 200 {
