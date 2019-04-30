@@ -27,7 +27,7 @@ func (mappingIndexer *MappingIndexer) Initialize(path string) error {
 		return fmt.Errorf("Error while initializing: %s", err)
 	}
 	mappingIndexer.db = db
-	mappingIndexer.sequence, _ = db.GetSequence([]byte("sequence"), 1000)
+	mappingIndexer.sequence, _ = db.GetSequence([]byte("sequence"), 10000)
 	mappingIndexer.databasePath = path
 	return err
 }

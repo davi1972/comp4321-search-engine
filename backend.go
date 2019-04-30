@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"regexp"
 	"sort"
 	"strconv"
 	"syscall"
@@ -39,7 +38,7 @@ type server struct {
 	pageRankIndexer                   *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
-	bs 									*boolsearch.BoolSearch
+	bs                                *boolsearch.BoolSearch
 	pls                               *phrasalSearch.PhrasalSearch
 }
 
@@ -195,16 +194,16 @@ func (s *server) Initialize() {
 		TitleWordForwardIndexer:           s.titleWordForwardIndexer,
 	}
 
-	s.bs := &boolsearch.BoolSearch{
-		ContentInvertedIndexer: contentInvertedIndexer,
-		Vsm:                    v,
+	s.bs = &boolsearch.BoolSearch{
+		ContentInvertedIndexer: s.contentInvertedIndexer,
+		Vsm:                    s.vsm,
 	}
 
-	s.pls := &phrasalSearch.PhrasalSearch{
-		TitleInvertedIndexer:    titleInvertedIndexer,
-		ContentInvertedIndexer:  contentInvertedIndexer,
-		TitleWordForwardIndexer: titleWordForwardIndexer,
-		V:                       v,
+	s.pls = &phrasalSearch.PhrasalSearch{
+		TitleInvertedIndexer:    s.titleInvertedIndexer,
+		ContentInvertedIndexer:  s.contentInvertedIndexer,
+		TitleWordForwardIndexer: s.titleWordForwardIndexer,
+		V:                       s.vsm,
 		Bs:                      s.bs,
 	}
 
@@ -312,13 +311,15 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	query := vars["queryString"]
 
-	// Extract phrases first before doing everything else
-	regex, _ := regexp.Compile(`("([^"]|"")*")`)
-	phraseList := regex.FindAllString(query, -1)
-	boostedDocsIDList := make([]uint64)
-	for _, phrase := range phraseList {
-		boostedDocsIDList = append(boostedDocsIDList S.pls)
-	}
+	// // Extract phrases first before doing everything else
+	// regex, _ := regexp.Compile(`("([^"]|"")*")`)
+	// phraseList := regex.FindAllString(query, -1)
+	// var boostedDocsIDList []uint64
+	// for _, phrase := range phraseList {
+	// 	splitPhrase := strings.Split(strings.Trim(phrase, "\""), " ")
+	// 	boostedDocsIDList = append(boostedDocsIDList, S.pls.GetPhraseDocuments(splitPhrase)...)
+	// }
+	// fmt.Println(boostedDocsIDList)
 
 	resp := &QueryListResponse{}
 
@@ -377,6 +378,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 		resp.List = append(resp.List, *doc)
 	}
+	fmt.Println(resp)
 	jsonResult, jsonErr := json.Marshal(resp)
 	if jsonErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)

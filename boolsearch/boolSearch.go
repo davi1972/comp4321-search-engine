@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	Indexer "../indexer"
-	"../vsm"
+	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	"github.com/davi1972/comp4321-search-engine/vsm"
 )
 
 type BoolSearch struct {

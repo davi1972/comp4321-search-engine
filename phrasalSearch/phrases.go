@@ -3,11 +3,11 @@ package phrasalSearch
 import (
 	"sort"
 
-	"../boolsearch"
-	"../vsm"
+	"github.com/davi1972/comp4321-search-engine/boolsearch"
+	"github.com/davi1972/comp4321-search-engine/vsm"
 
 	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
-	Indexer "../indexer"
+	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
 )
 
 type PhrasalSearch struct {
@@ -137,7 +137,6 @@ func (phrases *PhrasalSearch) GetPhraseDocuments(query []string) []uint64 {
 
 	ps := phrases.splitToPhrase(query)
 	bgDocs := make([][]uint64, 0)
-
 	for _, phr := range ps {
 		tempPhr := phrases.hasPhrase(phr, query)
 		bgDocs = append(bgDocs, tempPhr)

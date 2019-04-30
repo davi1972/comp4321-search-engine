@@ -22,6 +22,12 @@ type VSM struct {
 	TitleWordForwardIndexer           *Indexer.DocumentWordForwardIndexer
 }
 
+// Returns a wordid given a (tokenized) term.
+func (vsm *VSM) StringToWordID(qterm string) (uint64, error) {
+	wordid, err := vsm.WordIndexer.GetValueFromKey(qterm)
+	return wordid, err
+}
+
 // Returns the maximum term frequency of a term in a document ID.
 func (vsm *VSM) MaxTermFreq(documentID uint64) uint64 {
 	words, _ := vsm.DocumentWordForwardIndexer.GetWordFrequencyListFromKey(documentID)
