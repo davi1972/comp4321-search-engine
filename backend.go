@@ -209,12 +209,21 @@ func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]
 			} else if valErr != nil {
 				return nil, valErr
 			}
-			g.Nodes = append(g.Nodes, Node{Name: str})
+
 			g.EdgesString = append(g.EdgesString, EdgeString{From: curStr, To: str})
+			exist := false
+			for _, node := range g.Nodes {
+				if node.Name == str {
+					exist = true
+				}
+			}
+			if !exist {
+				g.Nodes = append(g.Nodes, Node{Name: str})
+			}
+
 		}
 		resultIDs = append(resultIDs, idList...)
 	}
-
 	return resultIDs, nil
 }
 
