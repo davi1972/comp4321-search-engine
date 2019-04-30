@@ -88,7 +88,7 @@
     </div>
     <div class="modal fade" id="graphModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Parent Children Links Graph</h5>
@@ -160,7 +160,7 @@
         Vue.mixin({
             data: function () {
                 return {
-                    API_URL: 'http://localhost:8000/'
+                    API_URL: 'http://vml1wk196.cse.ust.hk/'
                 }
             }
         });
@@ -204,6 +204,9 @@
                             if (!res.data.documents) {
                                 this.notfound = true;
                             }
+                            if(res.data.documents.length==0){
+                                this.notfound = true;
+                            }
                         })
                 },
 
@@ -245,7 +248,7 @@
                 },
                 loadGraph: function (id) {
                     d3.selectAll('#graph svg').remove();
-                    d3.json("http://localhost:8000/graph/"+id, function (error, links) {
+                    d3.json("http://vml1wk196.cse.ust.hk/graph/"+id, function (error, links) {
                         
                         var nodes = {};
                         links = links.EdgesString
@@ -258,15 +261,15 @@
                             link.value = 1;
                         });
 
-                        var width = 600,
-                            height = 500;
+                        var width = 1100,
+                            height =800;
 
                         var force = d3.layout.force()
                             .nodes(d3.values(nodes))
                             .links(links)
                             .size([width, height])
                             .linkDistance(150)
-                            .charge(-1000)
+                            .charge(-400)
                             .on("tick", tick)
                             .start();
 
