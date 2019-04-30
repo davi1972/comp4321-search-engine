@@ -55,9 +55,13 @@ func (phrases *PhrasalSearch) hasPhraseInTitle(documentID uint64, b BiGram) bool
 	var doc2pos []uint64
 	for i := range doc1 {
 		if doc2[i].GetPageID() == documentID {
-			doc2pos = doc1[i].GetWordPositions()
+			doc2pos = doc2[i].GetWordPositions()
 			break
 		}
+	}
+
+	if len(doc2pos) < len(doc2) {
+		return false
 	}
 
 	for i := range doc2 {
@@ -93,9 +97,13 @@ func (phrases *PhrasalSearch) hasPhraseInBody(documentID uint64, b BiGram) bool 
 	var doc2pos []uint64
 	for i := range doc1 {
 		if doc2[i].GetPageID() == documentID {
-			doc2pos = doc1[i].GetWordPositions()
+			doc2pos = doc2[i].GetWordPositions()
 			break
 		}
+	}
+
+	if len(doc2pos) < len(doc2) {
+		return false
 	}
 
 	for i := range doc2 {
