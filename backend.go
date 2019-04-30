@@ -32,6 +32,8 @@ type server struct {
 	titleWordForwardIndexer           *Indexer.DocumentWordForwardIndexer
 	parentChildDocumentForwardIndexer *Indexer.ForwardIndexer
 	childParentDocumentForwardIndexer *Indexer.ForwardIndexer
+	wordCountContentIndexer           *Indexer.PageRankIndexer
+	pageRankIndexer                   *Indexer.PageRankIndexer
 	router                            *mux.Router
 	vsm                               *vsm.VSM
 }
@@ -66,13 +68,15 @@ type WordFrequencyString struct {
 }
 
 type QueryResponse struct {
+	VSMScore         float64               `json:"vsmscore"`
+	PageRankScore    float64               `json:"pagerankscore"`
 	Score            float64               `json:"score"`
 	Title            string                `json:"title"`
 	URL              string                `json:"url"`
-	LastModifiedDate time.Time             `json:"last-modified"`
+	LastModifiedDate time.Time             `json:"last_modified"`
 	KeyWord          []WordFrequencyString `json:"keywords"`
-	ParentList       []string              `json:"parent-urls"`
-	ChildList        []string              `json:"child-urls"`
+	ParentList       []string              `json:"parent_urls"`
+	ChildList        []string              `json:"child_urls"`
 }
 
 type QueryListResponse struct {
@@ -82,6 +86,7 @@ type QueryListResponse struct {
 // S ...
 var S server
 var maxDepth = 2
+var prWeight = 0.8
 
 func main() {
 	S.Initialize()
@@ -164,6 +169,12 @@ func (s *server) Initialize() {
 		fmt.Printf("error when initializing document -> word forward Indexer: %s\n", titleWordForwardIndexerErr)
 	}
 
+	s.pageRankIndexer = &Indexer.PageRankIndexer{}
+	pageRankIndexerErr := s.pageRankIndexer.Initialize(wd + "/db/pageRankIndex")
+	if pageRankIndexerErr != nil {
+		fmt.Printf("error when initializing page rank indexer: %s\n", pageRankIndexerErr)
+	}
+
 	s.router = mux.NewRouter()
 	s.vsm = &vsm.VSM{
 		DocumentIndexer:                   s.documentIndexer,
@@ -191,6 +202,8 @@ func (s *server) Release() {
 	s.documentWordForwardIndexer.Release()
 	s.parentChildDocumentForwardIndexer.Release()
 	s.childParentDocumentForwardIndexer.Release()
+	s.pageRankIndexer.Release()
+	s.wordCountContentIndexer.Release()
 	s.titleWordForwardIndexer.Release()
 }
 
@@ -209,12 +222,21 @@ func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]
 			} else if valErr != nil {
 				return nil, valErr
 			}
-			g.Nodes = append(g.Nodes, Node{Name: str})
+
 			g.EdgesString = append(g.EdgesString, EdgeString{From: curStr, To: str})
+			exist := false
+			for _, node := range g.Nodes {
+				if node.Name == str {
+					exist = true
+				}
+			}
+			if !exist {
+				g.Nodes = append(g.Nodes, Node{Name: str})
+			}
+
 		}
 		resultIDs = append(resultIDs, idList...)
 	}
-
 	return resultIDs, nil
 }
 
@@ -262,10 +284,13 @@ func wordListHandler(w http.ResponseWriter, r *http.Request) {
 	resp := &WordListResponse{}
 	resp.WordList = S.wordIndexer.AllValue()
 	jsonResult, _ := json.Marshal(resp)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResult)
 }
 
 func queryHandler(w http.ResponseWriter, r *http.Request) {
+
 	vars := mux.Vars(r)
 	query := vars["queryString"]
 	resp := &QueryListResponse{}
@@ -284,8 +309,17 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		if score == 0 {
 			continue
 		}
+
+		pageRankScore, err := S.pageRankIndexer.GetValueFromKey(i)
+
+		if err != nil {
+			fmt.Println("error retrieving page rank value", err)
+		}
+
 		doc := &QueryResponse{}
-		doc.Score = score
+		doc.PageRankScore = pageRankScore
+		doc.VSMScore = score
+		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
 		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(i)
 		doc.Title = pageProps.GetTitle()
 		doc.URL = pageProps.GetUrl()
@@ -321,6 +355,8 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("500 - Internal Server Error! Details: " + jsonErr.Error()))
 	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResult)
 
 	elapsed = time.Since(start)

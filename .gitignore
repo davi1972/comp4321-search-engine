@@ -1,3 +1,4 @@
 db/
 .DS_Store
 spider_result.txt
+indexer/dbTest/

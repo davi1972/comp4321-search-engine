@@ -3,6 +3,8 @@
 <head>
     <title>Search Engine</title>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
@@ -17,83 +19,65 @@
                 <div class="row">
                     <div class="col-md-8">
                         <div class="search-bar">
-                            <input class="form-control form-control-lg search-input" type="text">
+                            <input v-on:keyup.enter="checkQuery" class="form-control form-control-lg search-input"
+                                type="text" v-model="query">
                             <span class="search-button">
-                                <button class="btn btn-default">
+                                <button v-on:click="checkQuery" class="btn btn-default">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </span>
+                        </div>
+                        <div class="error">
+                            <p class="ml-2" v-if="errors">
+                                {{ errors }}
+                            </p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <ul class="nav" style="float:right">
                             <li class="nav-item">
-                                <a class="nav-link active" href="#">History</a>
+                                <a class="nav-link" href="#" v-on:click="gotoSearch" style="color:gray">Search</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Keywords List</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Link</a>
+                                <a class="nav-link" href="#" v-on:click="gotoKeywords" style="color:gray">Keywords List</a>
                             </li>
                         </ul>
                     </div>
                 </div>
         </header>
-        <div class="container">
-            <div class="row search-result">
+        <div class="container" style="padding-top:24px">
+            <div class="row" v-if="page==1">
                 <div class="col-md-8">
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
-                    <div class="card result">
-                        <div class="card-body">
-                            <p class="title">Avengers: Endgame (2019) - IMDb</p>
-                            <p class="url">https://www.imdb.com/title/tt4154796/</p>
-                            <p class="desc">
-                                After the devastating events of Avengers: Infinity War (2018), the universe
-                                is in ruins. With the help of remaining allies, the Avengers assemble once more in ...
-                            </p>
-                            <p class="date">24 February 2019</p>
-
-                        </div>
-                    </div>
+                    <h3 class="mb-4">Search Result</h3>
+                    <p v-if="notfound">Not found</p>
+                    <search-result v-for="result in results" v-bind:title="result.title" v-bind:url="result.url"
+                        v-bind:date="result.last_modified" v-bind:key="result.url">
+                        <result-keyword v-bind:keywords="result.keywords"></result-keyword>
+                        <hr>
+                        <dropdown-url v-bind:urls="result.parent_urls">Parents</dropdown-url>
+                        <dropdown-url v-if="result.child_urls.length" v-bind:urls="result.child_urls">Children
+                        </dropdown-url>
+                    </search-result>
                 </div>
                 <div class="col-md-4">
                     <!--graph-->
+                </div>
+            </div>
+            <div class="row" v-else>
+                <div class="col-md-8">
+                    <div>
+                        <h3>Keywords List</h3>
+                        <br/>
+                        <button type="button" v-bind:class="selected(word)" v-for="word in keywords" class="btn mr-2 mb-2"
+                            v-on:click="appendQuery(word)">{{word}}</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <p>Click on the keywords to form new query.</p>
+                    <button type="button" v-for="word in newQuery" v-on:click="removeQuery(word)"
+                        class="btn btn-light mr-2 mb-2">{{word}}</button>
+                    <br/>
+                    <button type="button" v-bind:class="{disabled:!newQuery.length}" v-on:click="searchNewQuery" class="btn btn-secondary keyword-btn">Go!</button>
                 </div>
             </div>
 
@@ -101,40 +85,152 @@
     </div>
     <script>
 
-        Vue.component('app-user', {
-            data: function () {
-                return {
-                    users: [
-                        { name: 'Max', age: 27 },
-                        { name: 'Chris', age: 30 },
-                        { name: 'Nora', age: 25 },
-                    ]
-                }
+        var result_parent = Vue.component('dropdown-url', {
+            props: {
+                urls: Array
             },
             template: `
-      <div>
-        <div class="user" v-for="user in users">
-        <p>User: {{user.name}}</p>
-        </div>
-      </div>
-        `
+            <div class="btn-group">
+                <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <slot></slot>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a v-for="url in urls" class="dropdown-item" _target="blank" v-bind:href="url">{{url}}</a>
+                </div>
+                </div>
+            `
+        })
+
+        var result_keyword = Vue.component('result-keyword', {
+            props: {
+                keywords: Array
+            },
+            template: `
+                <div>
+                <span v-for="keyword in keywords" class="badge badge-light mr-2">{{keyword.word + " " + keyword.frequency}}</span>
+                </div>
+            `
+        })
+
+
+        var searchResult = Vue.component('search-result', {
+            props: {
+                title: String,
+                url: String,
+                date: String,
+
+            },
+            template: `
+                <div class="card result">
+                    <div class="card-body">
+                        <p><a v-bind:href="url" class="title">{{title}}</a></p>
+                        <p><a v-bind:href="url" class="url">{{url}}</a></p>
+                        <p class="date">{{date}}</p>
+                        <slot></slot>
+                    </div>
+                </div>
+            `
+        })
+
+        Vue.mixin({
+            data: function () {
+                return {
+                    API_URL: 'http://localhost:8000/'
+                }
+            }
         });
 
         new Vue({
             el: '#app',
             data: {
-                title: "Hellow",
-                cssClass: '',
-                show: true,
-
+                page: 1,
+                errors: "",
+                query: '',
+                results: [],
+                keywords: [],
+                notfound: false,
+                newQuery: []
             },
             methods: {
-                changeTitle() {
-                    this.title = "Changed title";
+                checkQuery: function (e) {
+
+                    if (!this.query) {
+                        this.errors = "Search query cannot be empty";
+                    } else {
+                        this.errors = '';
+                        this.search(this.query)
+                    }
+
+                    if (!this.errors) {
+                        return true;
+                    }
+
+                    e.preventDefault();
+                },
+
+                search: function (query) {
+                    this.notfound = false;
+                    this.page = 1;
+                    this.results = [];
+                    axios.get(this.API_URL + "query/" + query)
+                        .then(res => {
+
+                            this.results = res.data.documents;
+                            if (!res.data.documents) {
+                                this.notfound = true;
+                            }
+                        })
+                },
+
+                gotoSearch: function () {
+                    this.page = 1;
+                },
+
+                gotoKeywords: function () {
+                    this.newQuery = [];
+                    if (!this.keywords.length) {
+                        axios.get(this.API_URL + "wordList")
+                            .then(res => {
+                                this.keywords = res.data.words;
+                            })
+                    }
+                    this.page = 2;
+                },
+                appendQuery: function (word) {
+                    if (!this.newQuery.includes(word))
+                        this.newQuery.push(word);
+                },
+                removeQuery: function (word) {
+                    var index = this.newQuery.indexOf(word);
+                    if (index > -1) {
+                        this.newQuery.splice(index, 1);
+                    }
+                },
+                selected: function(word){
+                    if(this.newQuery.includes(word))
+                        return "btn-secondary disabled";
+                    else
+                        return "btn-light";
+                },
+                searchNewQuery: function(){
+
+                    this.query = this.newQuery.join(' ');              
+                    this.search(this.query);
+
                 }
+
             }
         })
     </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
     <style>
 
     </style>
