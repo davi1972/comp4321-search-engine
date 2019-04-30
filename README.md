@@ -40,6 +40,6 @@ $ go run test.go
 Written in Go Programming Language using databse BadgerDB
 
 ## People
-This program is made by David Sun and Hans Krishandi
+This program is made by David Sun, Hans Krishandi, and Calvin Cheng
 
 
