@@ -1,5 +1,6 @@
-body {
-
+.main-container {
+    padding-top:24px;
+    padding-bottom:24px;
 }
 
 #top-bar {
@@ -81,7 +82,7 @@ body {
     font-size:10px;
 }
 
-.keyword-btn{
+.keyword-btn, .btn-graph, #header-nav{
     float:right;
 }
 
