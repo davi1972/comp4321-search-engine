@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -83,8 +85,22 @@ type QueryResponse struct {
 	ChildList        []string              `json:"child_urls"`
 }
 
+type QueryResponses []QueryResponse
+
+func (s QueryResponses) Len() int {
+	return len(s)
+}
+
+func (s QueryResponses) Less(i, j int) bool {
+	return s[i].Score > s[j].Score
+}
+
+func (s QueryResponses) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 type QueryListResponse struct {
-	List []QueryResponse `json:"documents"`
+	List QueryResponses `json:"documents"`
 }
 
 // S ...
@@ -311,17 +327,20 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	query := vars["queryString"]
 
-	// // Extract phrases first before doing everything else
-	// regex, _ := regexp.Compile(`("([^"]|"")*")`)
-	// phraseList := regex.FindAllString(query, -1)
-	// var boostedDocsIDList []uint64
-	// for _, phrase := range phraseList {
-	// 	splitPhrase := strings.Split(strings.Trim(phrase, "\""), " ")
-	// 	boostedDocsIDList = append(boostedDocsIDList, S.pls.GetPhraseDocuments(splitPhrase)...)
-	// }
-	// fmt.Println(boostedDocsIDList)
+	// Extract phrases first before doing everything else
+	regex, _ := regexp.Compile(`("([^"]|"")*")`)
+	phraseList := regex.FindAllString(query, -1)
+	boostedDocsIDList := make(map[uint64]int)
+	for _, phrase := range phraseList {
+		splitPhrase := strings.Split(strings.Trim(phrase, "\""), " ")
+		for _, doc := range S.pls.GetPhraseDocuments(splitPhrase) {
+			boostedDocsIDList[doc]++
+		}
+	}
 
 	resp := &QueryListResponse{}
+
+	responses := QueryResponses{}
 
 	start := time.Now()
 	cosScore, err := S.vsm.ComputeCosineScore(query)
@@ -348,6 +367,11 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		doc.PageRankScore = pageRankScore
 		doc.VSMScore = score
 		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
+		// add boost to phrases!
+		if _, ok := boostedDocsIDList[i]; ok {
+			fmt.Println("Applying boost as phrase search")
+			doc.Score *= 1.5
+		}
 		pageProps, _ := S.pagePropertiesIndexer.GetPagePropertiesFromKey(i)
 		doc.Title = pageProps.GetTitle()
 		doc.URL = pageProps.GetUrl()
@@ -376,9 +400,10 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		resp.List = append(resp.List, *doc)
+		responses = append(responses, *doc)
 	}
-	fmt.Println(resp)
+	sort.Sort(responses)
+	resp.List = responses
 	jsonResult, jsonErr := json.Marshal(resp)
 	if jsonErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)

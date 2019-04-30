@@ -134,7 +134,6 @@ func (phrases *PhrasalSearch) GetPhraseDocuments(query []string) []uint64 {
 	if len(query) <= 1 {
 		return phrases.Bs.FindBoolean(query)
 	}
-
 	ps := phrases.splitToPhrase(query)
 	bgDocs := make([][]uint64, 0)
 	for _, phr := range ps {
@@ -155,5 +154,6 @@ func (phrases *PhrasalSearch) GetPhraseDocuments(query []string) []uint64 {
 		}
 		docs = phrases.Bs.FindIntersect(docs, v)
 	}
+
 	return docs
 }
