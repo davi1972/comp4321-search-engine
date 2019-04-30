@@ -329,6 +329,7 @@ func main() {
 
 	// After finished, iterate over all pages to get child->parent relation
 	for _, page := range pages {
+		fmt.Println("Computing child")
 		page.parent.Init()
 		for _, v := range pages {
 			if _, contains := v.children.Get(page.id); contains {
