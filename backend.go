@@ -75,6 +75,7 @@ type WordFrequencyString struct {
 }
 
 type QueryResponse struct {
+	PageID           uint64                `json:"pageID"`
 	VSMScore         float64               `json:"vsmscore"`
 	PageRankScore    float64               `json:"pagerankscore"`
 	Score            float64               `json:"score"`
@@ -370,6 +371,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 
 		doc := &QueryResponse{}
 		doc.PageRankScore = pageRankScore
+		doc.PageID = i
 
 		doc.VSMScore = score
 		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
