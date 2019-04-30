@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/debug"
 
 	//"github.com/gocolly/colly/debug"
 	"fmt"
@@ -142,7 +143,7 @@ func main() {
 	pages := make([]pageMap, 0)
 	crawler := colly.NewCollector(
 		colly.MaxDepth(maxDepth),
-		// colly.Debugger(&debug.LogDebugger{}),
+		colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 	)
 
@@ -323,8 +324,12 @@ func main() {
 	crawler.Visit(rootPage)
 
 	crawler.Wait()
+
+	fmt.Println("Finished crawling, computing children links..")
+
 	// After finished, iterate over all pages to get child->parent relation
 	for _, page := range pages {
+		fmt.Println("Computing child")
 		page.parent.Init()
 		for _, v := range pages {
 			if _, contains := v.children.Get(page.id); contains {
