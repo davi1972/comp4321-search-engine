@@ -25,8 +25,10 @@ text {
 <body>
 <script>
 
+var query = location.search.substr(1).split("&").reduce((o,i)=>(u=decodeURIComponent,[k,v]=i.split("="),o[u(k)]=v&&u(v),o),{});
 // get the data
-d3.json("http://localhost:8000/graph/0", function(error, links) {
+
+d3.json("http://localhost:8000/graph/" + query["id"], function(error, links) {
 
 var nodes = {};
 links = links.EdgesString

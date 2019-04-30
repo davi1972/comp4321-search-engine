@@ -5,6 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="http://d3js.org/d3.v3.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="css/style.css">
@@ -39,7 +40,8 @@
                                 <a class="nav-link" href="#" v-on:click="gotoSearch" style="color:gray">Search</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#" v-on:click="gotoKeywords" style="color:gray">Keywords List</a>
+                                <a class="nav-link" href="#" v-on:click="gotoKeywords" style="color:gray">Keywords
+                                    List</a>
                             </li>
                         </ul>
                     </div>
@@ -51,36 +53,58 @@
                     <h3 class="mb-4">Search Result</h3>
                     <p v-if="notfound">Not found</p>
                     <search-result v-for="result in results" v-bind:title="result.title" v-bind:url="result.url"
-                        v-bind:date="result.last_modified" v-bind:key="result.url">
+                        v-bind:date="result.last_modified" v-bind:score="result.score" v-bind:key="result.url">
                         <result-keyword v-bind:keywords="result.keywords"></result-keyword>
                         <hr>
                         <dropdown-url v-bind:urls="result.parent_urls">Parents</dropdown-url>
-                        <dropdown-url v-if="result.child_urls.length" v-bind:urls="result.child_urls">Children
+                        <dropdown-url v-if="result.child_urls" v-bind:urls="result.child_urls">Children
                         </dropdown-url>
+                        <button v-on:click="loadGraph(result.pageID)" type="button" class="btn btn-light"
+                            data-toggle="modal" data-target="#graphModal" style="float:right">View
+                            Parent Children Graph</button>
                     </search-result>
-                </div>
-                <div class="col-md-4">
-                    <!--graph-->
                 </div>
             </div>
             <div class="row" v-else>
                 <div class="col-md-8">
                     <div>
                         <h3>Keywords List</h3>
-                        <br/>
-                        <button type="button" v-bind:class="selected(word)" v-for="word in keywords" class="btn mr-2 mb-2"
-                            v-on:click="appendQuery(word)">{{word}}</button>
+                        <br />
+                        <button type="button" v-bind:class="selected(word)" v-for="word in keywords"
+                            class="btn mr-2 mb-2" v-on:click="appendQuery(word)">{{word}}</button>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <p>Click on the keywords to form new query.</p>
                     <button type="button" v-for="word in newQuery" v-on:click="removeQuery(word)"
                         class="btn btn-light mr-2 mb-2">{{word}}</button>
-                    <br/>
-                    <button type="button" v-bind:class="{disabled:!newQuery.length}" v-on:click="searchNewQuery" class="btn btn-secondary keyword-btn">Go!</button>
+                    <br />
+                    <button type="button" v-bind:class="{disabled:!newQuery.length}" v-on:click="searchNewQuery"
+                        class="btn btn-secondary keyword-btn">Go!</button>
                 </div>
             </div>
 
+        </div>
+    </div>
+    <div class="modal fade" id="graphModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Parent Children Links Graph</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="graph">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -118,12 +142,13 @@
                 title: String,
                 url: String,
                 date: String,
+                score: Number
 
             },
             template: `
                 <div class="card result">
                     <div class="card-body">
-                        <p><a v-bind:href="url" class="title">{{title}}</a></p>
+                        <p><a v-bind:href="url" class="title">{{title}}</a><span class="score">({{score.toFixed(3)}})</span></p>
                         <p><a v-bind:href="url" class="url">{{url}}</a></p>
                         <p class="date">{{date}}</p>
                         <slot></slot>
@@ -206,17 +231,108 @@
                         this.newQuery.splice(index, 1);
                     }
                 },
-                selected: function(word){
-                    if(this.newQuery.includes(word))
+                selected: function (word) {
+                    if (this.newQuery.includes(word))
                         return "btn-secondary disabled";
                     else
                         return "btn-light";
                 },
-                searchNewQuery: function(){
+                searchNewQuery: function () {
 
-                    this.query = this.newQuery.join(' ');              
+                    this.query = this.newQuery.join(' ');
                     this.search(this.query);
 
+                },
+                loadGraph: function (id) {
+                    d3.selectAll('#graph svg').remove();
+                    d3.json("http://localhost:8000/graph/"+id, function (error, links) {
+                        
+                        var nodes = {};
+                        links = links.EdgesString
+                        // Compute the distinct nodes from the links.
+                        links.forEach(function (link) {
+                            link.source = nodes[link.source] ||
+                                (nodes[link.source] = { name: link.source });
+                            link.target = nodes[link.target] ||
+                                (nodes[link.target] = { name: link.target });
+                            link.value = 1;
+                        });
+
+                        var width = 600,
+                            height = 500;
+
+                        var force = d3.layout.force()
+                            .nodes(d3.values(nodes))
+                            .links(links)
+                            .size([width, height])
+                            .linkDistance(150)
+                            .charge(-1000)
+                            .on("tick", tick)
+                            .start();
+
+                        var svg = d3.select("#graph").append("svg")
+                            .attr("width", width)
+                            .attr("height", height);
+
+                        // build the arrow.
+                        svg.append("svg:defs").selectAll("marker")
+                            .data(["end"])      // Different link/path types can be defined here
+                            .enter().append("svg:marker")    // This section adds in the arrows
+                            .attr("id", String)
+                            .attr("viewBox", "0 -5 10 10")
+                            .attr("refX", 15)
+                            .attr("refY", -1.5)
+                            .attr("markerWidth", 6)
+                            .attr("markerHeight", 6)
+                            .attr("orient", "auto")
+                            .append("svg:path")
+                            .attr("d", "M0,-5L10,0L0,5");
+
+                        // add the links and the arrows
+                        var path = svg.append("svg:g").selectAll("path")
+                            .data(force.links())
+                            .enter().append("svg:path")
+                            //    .attr("class", function(d) { return "link " + d.type; })
+                            .attr("class", "link")
+                            .attr("marker-end", "url(#end)");
+
+                        // define the nodes
+                        var node = svg.selectAll(".node")
+                            .data(force.nodes())
+                            .enter().append("g")
+                            .attr("class", "node")
+                            .call(force.drag);
+
+                        // add the nodes
+                        node.append("circle")
+                            .attr("r", 5);
+
+                        // add the text 
+                        node.append("text")
+                            .attr("x", 12)
+                            .attr("dy", ".35em")
+                            .text(function (d) { return d.name; });
+
+                        // add the curvy lines
+                        function tick() {
+                            path.attr("d", function (d) {
+                                var dx = d.target.x - d.source.x,
+                                    dy = d.target.y - d.source.y,
+                                    dr = Math.sqrt(dx * dx + dy * dy);
+                                return "M" +
+                                    d.source.x + "," +
+                                    d.source.y + "A" +
+                                    dr + "," + dr + " 0 0,1 " +
+                                    d.target.x + "," +
+                                    d.target.y;
+                            });
+
+                            node
+                                .attr("transform", function (d) {
+                                    return "translate(" + d.x + "," + d.y + ")";
+                                });
+                        }
+                    });
                 }
 
             }
