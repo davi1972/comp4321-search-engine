@@ -5,7 +5,7 @@ import (
 	"math"
 
 	//Indexer "github.com/davi1972/comp4321-search-engine/indexer"
-	Indexer "github.com/davi1972/comp4321-search-engine/indexer"
+	Indexer "../indexer"
 	"github.com/davi1972/comp4321-search-engine/tokenizer"
 )
 
@@ -162,7 +162,7 @@ func (vsm *VSM) ComputeCosineScore(query string) (map[uint64]float64, error) {
 			df := len(invFileListTitle)
 			infreq := math.Log2(float64(N) / float64(df))
 			scores[invFile.GetPageID()] += (float64(tf) / float64(maxtf) * float64(infreq)) * 1.5 // Special consideration
-			docLength += (float64(tf) * float64(infreq) * float64(tf) * float64(infreq)) * 1.5
+			docLength += (float64(tf) * float64(infreq) * float64(tf) * float64(infreq)) * 1.5 * 1.5
 		}
 		queryFreq[term]++
 	}
