@@ -35,7 +35,7 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <ul class="nav" style="float:right">
+                        <ul class="nav" id="header-nav">
                             <li class="nav-item">
                                 <a class="nav-link" href="#" v-on:click="gotoSearch" style="color:gray">Search</a>
                             </li>
@@ -47,7 +47,7 @@
                     </div>
                 </div>
         </header>
-        <div class="container" style="padding-top:24px">
+        <div class="main-container container">
             <div class="row" v-if="page==1">
                 <div class="col-md-8">
                     <h3 class="mb-4">Search Result</h3>
@@ -59,8 +59,8 @@
                         <dropdown-url v-bind:urls="result.parent_urls">Parents</dropdown-url>
                         <dropdown-url v-if="result.child_urls" v-bind:urls="result.child_urls">Children
                         </dropdown-url>
-                        <button v-on:click="loadGraph(result.pageID)" type="button" class="btn btn-light"
-                            data-toggle="modal" data-target="#graphModal" style="float:right">View
+                        <button v-on:click="loadGraph(result.pageID)" type="button" class="btn btn-light btn-graph"
+                            data-toggle="modal" data-target="#graphModal">View
                             Parent Children Graph</button>
                     </search-result>
                 </div>
