@@ -1,4 +1,3 @@
-//Modify the backend url here
 var API_URL = 'http://localhost:8000/'
 
 Vue.mixin({
@@ -230,5 +229,5 @@ new Vue({
             });
         }
 
-    } 
+    }
 })

@@ -107,7 +107,7 @@ type QueryListResponse struct {
 
 // S ...
 var S server
-var maxDepth = 2
+var maxDepth = 1
 var prWeight = 0.8
 
 func main() {
@@ -250,6 +250,7 @@ func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]
 			continue
 		}
 		idList, _ := S.parentChildDocumentForwardIndexer.GetIdListFromKey(uint64(docID))
+		childIdList, _ := S.childParentDocumentForwardIndexer.GetIdListFromKey(uint64(docID))
 		for _, i := range idList {
 			str, valErr := S.reverseDocumentIndexer.GetValueFromKey(i)
 			if valErr == badger.ErrKeyNotFound {
@@ -270,7 +271,31 @@ func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]
 			}
 
 		}
+
+		for _, i := range childIdList {
+			str, valErr := S.reverseDocumentIndexer.GetValueFromKey(i)
+			if valErr == badger.ErrKeyNotFound {
+				continue
+			} else if valErr != nil {
+				return nil, valErr
+			}
+
+			g.EdgesString = append(g.EdgesString, EdgeString{From: str, To: curStr})
+			exist := false
+			for _, node := range g.Nodes {
+				if node.Name == str {
+					exist = true
+				}
+			}
+			if !exist {
+				g.Nodes = append(g.Nodes, Node{Name: str})
+			}
+
+		}
+
+
 		resultIDs = append(resultIDs, idList...)
+		resultIDs = append(resultIDs, childIdList...)
 	}
 	return resultIDs, nil
 }
