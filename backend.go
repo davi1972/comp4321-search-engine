@@ -120,7 +120,7 @@ func main() {
 		S.Release()
 		os.Exit(1)
 	}()
-	http.ListenAndServe("localhost:8000", S.router)
+	fmt.Println(http.ListenAndServe(":8000", S.router))
 }
 
 func (s *server) Initialize() {
@@ -293,7 +293,6 @@ func (g *GraphResponse) AppendNodesAndEdgesStringFromIDList(docIDs []uint64) ([]
 
 		}
 
-
 		resultIDs = append(resultIDs, idList...)
 		resultIDs = append(resultIDs, childIdList...)
 	}
@@ -447,6 +446,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResult)
 	elapsed = time.Since(start)
 	log.Printf("Forming response took %s", elapsed)
+	fmt.Println(S.documentWordForwardIndexer.GetSize())
 }
 
 func (s *server) routes() {
