@@ -31,8 +31,8 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	// rootPage := "https://apartemen.win/comp4321/page1.html"
+	// rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
 	maxDepth := 2
 
 	tokenizer.LoadStopWords()
@@ -326,17 +326,18 @@ func main() {
 	crawler.Wait()
 
 	fmt.Println("Finished crawling, computing children links..")
-
+	fmt.Println("xxxxxxxxxxxxxx", pages)
 	// After finished, iterate over all pages to get child->parent relation
 	for _, page := range pages {
-		fmt.Println("Computing child")
 		page.parent.Init()
 		for _, v := range pages {
-			if _, contains := v.children.Get(page.id); contains {
-				page.parent.Set(v.id, nil)
+			if p, contains := v.children.Get(page.id); contains {
+				page.parent.Set(v.id, p)
 			}
 		}
-		childParentDocumentForwardIndexer.AddIdListToKey(page.id, page.parent.ConvertToSliceOfKeys())
+		if parentIDs := page.parent.ConvertToSliceOfKeys(); len(parentIDs) > 0 {
+			childParentDocumentForwardIndexer.AddIdListToKey(page.id, parentIDs)
+		}
 	}
 
 	// After everything is done, compute pagerank
