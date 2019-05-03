@@ -31,9 +31,9 @@ func main() {
 	var wg = &sync.WaitGroup{}
 	wd, _ := os.Getwd()
 
-	rootPage := "https://www.cse.ust.hk"
-	// rootPage := "https://apartemen.win/comp4321/page1.html"
-	maxDepth := 3
+	// rootPage := "https://www.cse.ust.hk"
+	rootPage := "https://apartemen.win/comp4321/page1.html"
+	maxDepth := 2
 
 	tokenizer.LoadStopWords()
 
@@ -326,7 +326,7 @@ func main() {
 	crawler.Wait()
 
 	fmt.Println("Finished crawling, computing children links..")
-
+	fmt.Println("xxxxxxxxxxxxxx", pages)
 	// After finished, iterate over all pages to get child->parent relation
 	for _, page := range pages {
 		page.parent.Init()

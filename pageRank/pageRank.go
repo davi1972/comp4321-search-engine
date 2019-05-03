@@ -42,7 +42,7 @@ func (pageRank *PageRank) ProcessPageRank() {
 	}
 	fmt.Println("Page IDs")
 	fmt.Println(pageIds)
-
+	
 	for _, id := range pageIds {
 
 		_, err := pageRank.reverseDocumentIndexer.GetValueFromKey(id)
@@ -56,15 +56,13 @@ func (pageRank *PageRank) ProcessPageRank() {
 
 		inlinks, err := pageRank.childParentDocumentForwardIndexer.GetIdListFromKey(id)
 
-		if len(inlinks) == 0 {
-			continue
-		}
-
 		if err != nil {
-			fmt.Printf("Error getting parent from id: %s", err)
+			fmt.Println("Error getting parent from id: ", id, err)
 		}
 
-		pageRank.parents[id] = inlinks
+		if len(inlinks) != 0 {
+			pageRank.parents[id] = inlinks
+		}
 
 		children, _ := pageRank.parentChildDocumentForwardIndexer.GetIdListFromKey(id)
 
@@ -111,6 +109,9 @@ func (pageRank *PageRank) calculatePageRank(damping float64, threshold float64) 
 
 			for _, id := range myParents {
 				parentsChild := float64(pageRank.numOutlinks[id])
+				if(parentsChild==0){
+					continue
+				}
 				sum += oldRanks[id] / parentsChild
 			}
 

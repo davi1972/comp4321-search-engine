@@ -396,7 +396,8 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		doc := &QueryResponse{}
 		doc.PageRankScore = pageRankScore
 		doc.PageID = i
-
+		fmt.Println("pageRank", i, pageRankScore)
+		fmt.Println("vsm", i, score)
 		doc.VSMScore = score
 		doc.Score = prWeight*pageRankScore + (1-prWeight)*score
 		// add boost to phrases!
@@ -436,6 +437,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.Sort(responses)
 	resp.List = responses
+	
 	jsonResult, jsonErr := json.Marshal(resp)
 	if jsonErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
